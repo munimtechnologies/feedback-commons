@@ -5,7 +5,8 @@ running on the school's own computer (Ollama), so student work never leaves
 the device. Every comment must quote the student's text; comments whose quote
 cannot be found are flagged. The teacher accepts, edits or rejects each one,
 in the terminal or on a local web page, and those decisions are logged
-locally. With consent, the log can be exported as a de-identified dataset.
+locally. A class summary shows which criteria most students need help with.
+With consent, the log can be exported as a de-identified dataset.
 
 Standard library only. By MV2 of Munim, Inc.
 """
@@ -24,7 +25,7 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 SCHEMA = "feedback-commons/1"
 DEFAULT_MODEL = "llama3.2:3b"
@@ -244,6 +245,88 @@ def uptake_events(drafts, events, revised, draft_number=1):
                                 "draft_number": draft_number,
                                 "uptake": revision_uptake(c["quote"], revised[student])})
     return out
+
+
+# --- class summary ---------------------------------------------------------
+
+ACTION_COUNT = {"accept": "accepted", "edit": "edited", "reject": "rejected"}
+
+
+def suggestion(students_sent, total):
+    """Rule of thumb for the next lesson; the teacher decides."""
+    if not students_sent:
+        return "no comments sent"
+    return "whole-class mini-lesson" if students_sent * 2 >= total else "small group"
+
+
+def class_summary(drafts, events, criteria=None, draft_number=1):
+    """Per-criterion picture of the class for one draft round, to plan what to teach next.
+
+    criteria is the rubric's criteria list (for order and names); without it
+    the criterion ids found in drafts are used. Students count as needing a
+    criterion only when the teacher sent them a comment on it, not when the
+    model merely drafted one.
+    """
+    decided, uptake = {}, {}
+    for e in events:
+        if e.get("draft_number", 1) != draft_number:
+            continue
+        key = (e.get("student"), e.get("criterion"), e.get("item"))
+        if e.get("kind") == "review":
+            decided.setdefault(key, e.get("action"))
+        elif e.get("kind") == "uptake":
+            uptake[key] = e.get("uptake")
+    if criteria is None:
+        criteria = [{"id": c, "name": c} for c in sorted({c for per in drafts.values() for c in per})]
+    rows = []
+    for c in criteria:
+        row = {"criterion": c["id"], "name": c.get("name") or c["id"], "drafted": 0,
+               "ungrounded": 0, "accepted": 0, "edited": 0, "rejected": 0, "not_reviewed": 0,
+               "revised": 0, "unchanged": 0, "students_sent": []}
+        for student in sorted(drafts):
+            sent = False
+            for i, comment in enumerate(drafts[student].get(c["id"], [])):
+                key = (student, c["id"], i)
+                row["drafted"] += 1
+                if not comment.get("grounded"):
+                    row["ungrounded"] += 1
+                action = decided.get(key)
+                row[ACTION_COUNT.get(action, "not_reviewed")] += 1
+                if action in ("accept", "edit"):
+                    sent = True
+                    if uptake.get(key) in ("revised", "unchanged"):
+                        row[uptake[key]] += 1
+            if sent:
+                row["students_sent"].append(student)
+        row["share_sent"] = _rate(len(row["students_sent"]), len(drafts))
+        row["suggestion"] = suggestion(len(row["students_sent"]), len(drafts))
+        rows.append(row)
+    return rows
+
+
+def _cell(s):
+    return str(s).replace("|", "\\|").replace("\n", " ")
+
+
+def render_summary(rows, total, draft_number=1):
+    """Markdown class summary. It names students, so keep it on this computer."""
+    out = ["# Class summary, draft %d" % draft_number, "",
+           "%d students. A student counts for a criterion when you sent them a comment on it "
+           "(accepted or edited). Suggestions are a rule of thumb: half the class or more "
+           "suggests a whole-class mini-lesson. You decide." % total, "",
+           "| Criterion | Students sent a comment | Comments sent | Rejected | Not reviewed "
+           "| Quote not found | Revised / unchanged | Suggestion |",
+           "|---|---|---|---|---|---|---|---|"]
+    for r in rows:
+        out.append("| %s | %d of %d | %d | %d | %d | %d | %d / %d | %s |" % (
+            _cell(r["name"]), len(r["students_sent"]), total, r["accepted"] + r["edited"],
+            r["rejected"], r["not_reviewed"], r["ungrounded"], r["revised"], r["unchanged"],
+            r["suggestion"]))
+    for r in rows:
+        if r["students_sent"]:
+            out += ["", "## %s" % r["name"], "",
+                    "Sent a comment: %s" % ", ".join(r["students_sent"])]
+    return "\n".join(out) + "\n"
 
 
 # --- local review page -----------------------------------------------------
@@ -512,6 +595,15 @@ def cmd_uptake(args):
           file=sys.stderr)
 
 
+def cmd_summary(args):
+    drafts = _read_drafts(args.drafts)
+    criteria = load_rubric(args.rubric)["criteria"] if args.rubric else None
+    rows = class_summary(drafts, _events_if_any(args.log), criteria, args.draft_number)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write(render_summary(rows, len(drafts), args.draft_number))
+    print("wrote %s; it names students, so keep it on this computer" % args.out, file=sys.stderr)
+
+
 def cmd_eval(args):
     rubric = load_rubric(args.rubric)
     essays = _read_essays(args.essays)
@@ -566,6 +658,13 @@ def main(argv=None):
     u.add_argument("--log", default="events.jsonl")
     u.add_argument("--draft-number", type=int, default=1, help="the round the comments were given in")
     u.set_defaults(func=cmd_uptake)
+    m = sub.add_parser("summary", help="class summary: which criteria most students need help with")
+    m.add_argument("drafts")
+    m.add_argument("--log", default="events.jsonl")
+    m.add_argument("--rubric", help="rubric file, for criterion names and order")
+    m.add_argument("--draft-number", type=int, default=1)
+    m.add_argument("--out", default="summary.md")
+    m.set_defaults(func=cmd_summary)
     v = sub.add_parser("eval", help="check how reliably local models draft grounded feedback")
     v.add_argument("rubric")
     v.add_argument("essays")

@@ -37,6 +37,11 @@ def review_event(student, criterion, item, action, draft_number=1):
             "item": item, "action": action, "draft_number": draft_number}
 
 
+def uptake_event(student, criterion, item, uptake, draft_number=1):
+    return {"schema": fc.SCHEMA, "kind": "uptake", "student": student, "criterion": criterion,
+            "item": item, "uptake": uptake, "draft_number": draft_number}
+
+
 class RubricTests(unittest.TestCase):
     def test_valid(self):
         self.assertTrue(fc.validate_rubric(RUBRIC))
@@ -274,6 +279,64 @@ class UptakeTests(unittest.TestCase):
             up = [e for e in fc.read_events(log) if e["kind"] == "uptake"]
             self.assertEqual(len(up), 1)
             self.assertEqual((up[0]["student"], up[0]["uptake"]), ("Ana Ruiz", "revised"))
+
+
+class SummaryTests(unittest.TestCase):
+    EVENTS = UptakeTests.EVENTS + [
+        uptake_event("Ana Ruiz", "claim", 0, "revised"),
+        uptake_event("Ben Ode", "evidence", 0, "unchanged"),
+        review_event("Ana Ruiz", "claim", 1, "accept", draft_number=2),  # another round: ignored
+    ]
+
+    def test_counts(self):
+        rows = fc.class_summary(DRAFTS, self.EVENTS, RUBRIC["criteria"])
+        self.assertEqual([r["name"] for r in rows], ["Clear claim", "Evidence"])
+        claim, evidence = rows
+        self.assertEqual(claim, {"criterion": "claim", "name": "Clear claim", "drafted": 2,
+                                 "ungrounded": 1, "accepted": 1, "edited": 0, "rejected": 1,
+                                 "not_reviewed": 0, "revised": 1, "unchanged": 0,
+                                 "students_sent": ["Ana Ruiz"], "share_sent": 0.5,
+                                 "suggestion": "whole-class mini-lesson"})
+        self.assertEqual((evidence["edited"], evidence["unchanged"], evidence["students_sent"]),
+                         (1, 1, ["Ben Ode"]))
+
+    def test_small_group_and_unreviewed(self):
+        drafts = dict(DRAFTS)
+        drafts["Cy Lee"] = {"claim": [], "evidence": []}
+        rows = fc.class_summary(drafts, UptakeTests.EVENTS[:1], RUBRIC["criteria"])
+        self.assertEqual((rows[0]["share_sent"], rows[0]["suggestion"]), (0.333, "small group"))
+        self.assertEqual(rows[0]["not_reviewed"], 1)
+        self.assertEqual((rows[1]["not_reviewed"], rows[1]["suggestion"]), (1, "no comments sent"))
+
+    def test_without_rubric(self):
+        rows = fc.class_summary(DRAFTS, [])
+        self.assertEqual([(r["criterion"], r["name"]) for r in rows],
+                         [("claim", "claim"), ("evidence", "evidence")])
+
+    def test_render(self):
+        rows = fc.class_summary(DRAFTS, self.EVENTS, [{"id": "claim", "name": "Claim | thesis"}])
+        text = fc.render_summary(rows, 2)
+        self.assertIn("# Class summary, draft 1", text)
+        self.assertIn("| Claim \\| thesis | 1 of 2 | 1 | 1 | 0 | 1 | 1 / 0 | whole-class mini-lesson |", text)
+        self.assertIn("Sent a comment: Ana Ruiz", text)
+
+    def test_cli(self):
+        with tempfile.TemporaryDirectory() as d:
+            drafts = os.path.join(d, "drafts.json")
+            with open(drafts, "w", encoding="utf-8") as f:
+                json.dump(DRAFTS, f)
+            rubric = os.path.join(d, "rubric.json")
+            with open(rubric, "w", encoding="utf-8") as f:
+                json.dump(RUBRIC, f)
+            log = os.path.join(d, "events.jsonl")
+            with open(log, "w", encoding="utf-8") as f:
+                for e in self.EVENTS:
+                    f.write(json.dumps(e) + "\n")
+            out = os.path.join(d, "summary.md")
+            fc.main(["summary", drafts, "--log", log, "--rubric", rubric, "--out", out])
+            with open(out, encoding="utf-8") as f:
+                text = f.read()
+            self.assertIn("| Evidence | 1 of 2 | 1 | 0 | 0 | 0 | 0 / 1 | whole-class mini-lesson |", text)
 
 
 class ServeTests(unittest.TestCase):
