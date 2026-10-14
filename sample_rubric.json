@@ -1,0 +1,10 @@
+{
+  "title": "Argument essay (grades 6-10)",
+  "criteria": [
+    {"id": "claim", "name": "Clear claim", "description": "States a clear position that the whole essay defends."},
+    {"id": "evidence", "name": "Evidence", "description": "Supports the claim with specific, relevant evidence or examples."},
+    {"id": "reasoning", "name": "Reasoning", "description": "Explains how the evidence supports the claim."},
+    {"id": "counterclaim", "name": "Counterclaim", "description": "Acknowledges another view and responds to it."},
+    {"id": "conventions", "name": "Conventions", "description": "Sentences are clear; spelling and punctuation do not get in the way of meaning."}
+  ]
+}
