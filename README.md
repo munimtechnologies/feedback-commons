@@ -7,8 +7,9 @@ Feedback Commons is a local-first writing-feedback assistant for teachers. It ru
 - **What to teach next.** A class summary shows, for each rubric criterion, how many students you sent a comment on it, so you can see what calls for a whole-class mini-lesson and what calls for a small group.
 - **Did it help?** When students hand in a revision, Feedback Commons checks whether they changed the passages your comments pointed to.
 - **An open dataset, with consent.** Your decisions are logged on your machine. With consent, they can be exported as a de-identified dataset of "AI draft → teacher-approved feedback" pairs. Shared openly, such data can show which feedback teachers keep and which feedback students act on.
+- **For developers: an MCP tool server.** Other AI apps and agents can use the drafting, quote checks, revision checks and class summary through the Model Context Protocol. No tool approves feedback; that stays with the teacher.
 
-**Status: early prototype (v0.3.0).** It has no classroom users yet, and we're looking for teachers who want to try it and tell us what's wrong. Open an issue or email munimversion2@gmail.com.
+**Status: early prototype (v0.4.0).** It has no classroom users yet, and we're looking for teachers who want to try it and tell us what's wrong. Open an issue or email munimversion2@gmail.com.
 
 ## How it works
 Each comment follows a well-known feedback design ("feed up, feed back, feed forward"):
@@ -69,6 +70,40 @@ It doesn't judge whether the advice is good. That's your call. Run it on essays 
 
 Automatic de-identification is never perfect, so **read the export yourself before sharing it**.
 
+## MCP tool server (for developers)
+`mcp` runs Feedback Commons as a [Model Context Protocol](https://modelcontextprotocol.io) server on stdio, so an AI app or agent can call its steps as tools:
+
+```
+python feedback_commons.py mcp --data-dir /path/to/class-folder
+```
+
+| Tool | What it does |
+|---|---|
+| `build_feedback_prompt` | Chat messages that ask any model for rubric-aligned, quote-grounded feedback on one criterion |
+| `check_feedback` | Reads a model's reply (or a list of comments) and marks each comment grounded only if its quote is really in the student's text |
+| `draft_feedback` | Drafts and checks feedback with the Ollama model on this computer |
+| `revision_uptake` | For quotes from sent comments: did the revised text change each passage? |
+| `class_summary` | The class summary above, from drafts and review events given inline or as files in `--data-dir`; `hide_names` swaps names for pseudonyms |
+
+To add it to an MCP client, point the client at the command. Most clients use a config like this:
+
+```json
+{
+  "mcpServers": {
+    "feedback-commons": {
+      "command": "python",
+      "args": ["/path/to/feedback_commons.py", "mcp", "--data-dir", "/path/to/class-folder"]
+    }
+  }
+}
+```
+
+- **Teacher approval isn't a tool.** No tool accepts, edits or sends feedback for the teacher. Decisions are made with `serve` or `review`, and only those decisions count in `class_summary`.
+- **Where the data goes.** The server itself only talks to your Ollama server. But whatever a tool returns goes to the app that called it, and that app may send it to a cloud model. If student work must stay on the device, use the server only with an app that runs a local model, or pass `hide_names` and anonymized text.
+- **Files.** `class_summary` reads files only inside `--data-dir` and refuses paths outside it. Without `--data-dir` it reads no files.
+- **Model and host.** `draft_feedback` uses the `--model` and `--host` you start the server with. A caller may pick another model name, but not another host.
+- **Protocol versions.** It supports MCP 2026-07-28 (the version goes in each request's `_meta`) and the older `initialize` handshake (2024-11-05 to 2025-11-25).
+
 ### Privacy and safety
 - The review page listens only on 127.0.0.1. It refuses requests addressed to any other host name, and each form carries a per-session token.
 - The only network calls go to your own Ollama server, which is `http://localhost:11434` by default.
@@ -83,6 +118,7 @@ python -m unittest -v
 The tests run offline and don't need Ollama.
 
 ## Changes
+- **0.4.0:** Added `mcp`, an MCP tool server on stdio, with tools for prompts, quote checks, local drafting, revision checks and the class summary. It speaks MCP 2026-07-28 and the older handshake.
 - **0.3.0:** Added `summary`, a class-level table per rubric criterion: who got a comment, what you sent or rejected, and what students revised, with a whole-class or small-group suggestion.
 - **0.2.0:**
   - Added a local web review page (`serve`), and both review modes now resume where you left off.

@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import tempfile
@@ -447,6 +448,170 @@ class ExportTests(unittest.TestCase):
             self.assertEqual(len(recs), 2)
             self.assertNotIn("Ruiz", json.dumps(recs))
             self.assertNotEqual(recs[0]["student"], recs[1]["student"])
+
+
+class McpTests(unittest.TestCase):
+    META = {fc.META_VERSION: "2026-07-28", fc.META_CAPS: {}}
+
+    def setUp(self):
+        self.asked = []
+
+        def ask(messages, model):
+            self.asked.append((messages, model))
+            return json.dumps({"comments": [{"quote": "it is good", "feed_forward": "Say why."},
+                                            {"quote": "studies prove it", "feed_forward": "Cite one."}]})
+
+        self.state = fc.mcp_state(ask=ask)
+
+    def rpc(self, method, params=None, rid=1, meta=True):
+        params = dict(params or {})
+        if meta:
+            params["_meta"] = self.META
+        return fc.handle_mcp({"jsonrpc": "2.0", "id": rid, "method": method, "params": params}, self.state)
+
+    def call(self, name, **arguments):
+        return self.rpc("tools/call", {"name": name, "arguments": arguments})["result"]
+
+    def test_discover(self):
+        r = self.rpc("server/discover")["result"]
+        self.assertEqual(r["supportedVersions"], ["2026-07-28"])
+        self.assertIn("tools", r["capabilities"])
+        self.assertEqual(r["resultType"], "complete")
+        self.assertEqual(r["_meta"][fc.META_SERVER]["version"], fc.__version__)
+
+    def test_version_errors(self):
+        bad = fc.handle_mcp({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {
+            "_meta": {fc.META_VERSION: "1900-01-01", fc.META_CAPS: {}}}}, self.state)
+        self.assertEqual(bad["error"]["code"], -32022)
+        self.assertEqual(bad["error"]["data"], {"supported": ["2026-07-28"], "requested": "1900-01-01"})
+        no_caps = fc.handle_mcp({"jsonrpc": "2.0", "id": 3, "method": "tools/list", "params": {
+            "_meta": {fc.META_VERSION: "2026-07-28"}}}, self.state)
+        self.assertEqual(no_caps["error"]["code"], -32602)
+        self.assertEqual(self.rpc("tools/list", meta=False)["error"]["code"], -32602)
+
+    def test_legacy_handshake(self):
+        init = self.rpc("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
+                                       "clientInfo": {"name": "t", "version": "1"}}, meta=False)["result"]
+        self.assertEqual(init["protocolVersion"], "2025-06-18")
+        self.assertEqual(init["serverInfo"]["name"], "feedback-commons")
+        self.assertNotIn("resultType", init)
+        self.assertIsNone(fc.handle_mcp({"jsonrpc": "2.0", "method": "notifications/initialized"}, self.state))
+        tools = self.rpc("tools/list", meta=False)["result"]["tools"]
+        self.assertEqual([t["name"] for t in tools], ["build_feedback_prompt", "check_feedback",
+                                                      "draft_feedback", "revision_uptake", "class_summary"])
+        newer = fc.mcp_state()
+        r = fc.handle_mcp({"jsonrpc": "2.0", "id": 1, "method": "initialize",
+                           "params": {"protocolVersion": "2099-01-01"}}, newer)
+        self.assertEqual(r["result"]["protocolVersion"], "2025-11-25")
+
+    def test_tools_are_well_formed(self):
+        tools = self.rpc("tools/list")["result"]["tools"]
+        for t in tools:
+            self.assertRegex(t["name"], r"^[A-Za-z0-9_.-]{1,128}$")
+            self.assertEqual(t["inputSchema"]["type"], "object")
+            self.assertTrue(t["description"])
+        # Approval stays with the teacher: no tool accepts or sends feedback.
+        self.assertFalse([t["name"] for t in tools if "approve" in t["name"] or "accept" in t["name"]])
+
+    def test_build_prompt(self):
+        r = self.call("build_feedback_prompt", criterion={"name": "Evidence"}, student_text=ESSAY, grade=8)
+        self.assertFalse(r["isError"])
+        msgs = r["structuredContent"]["messages"]
+        self.assertIn("Criterion: Evidence", msgs[1]["content"])
+        self.assertIn("Grade level: 8", msgs[1]["content"])
+        self.assertEqual(json.loads(r["content"][0]["text"]), r["structuredContent"])
+
+    def test_check_feedback(self):
+        reply = json.dumps({"comments": [{"quote": "it is good", "feed_forward": "Say why."},
+                                         {"quote": "made up", "feed_forward": "x"}]})
+        r = self.call("check_feedback", student_text=ESSAY, reply=reply)["structuredContent"]
+        self.assertEqual((r["grounded"], r["ungrounded"]), (1, 1))
+        self.assertEqual([c["grounded"] for c in r["comments"]], [True, False])
+        r2 = self.call("check_feedback", student_text=ESSAY,
+                       comments=[{"quote": "tired students", "feed_forward": "Cite."}])
+        self.assertEqual(r2["structuredContent"]["grounded"], 1)
+
+    def test_tool_errors_are_results(self):
+        r = self.call("check_feedback", student_text=ESSAY, reply="Sure! Here it is.")
+        self.assertTrue(r["isError"])
+        self.assertIn("not JSON", r["content"][0]["text"])
+        self.assertTrue(self.call("build_feedback_prompt", criterion={}, student_text=ESSAY)["isError"])
+        self.assertTrue(self.call("draft_feedback", criterion={"name": "Claim"}, student_text=ESSAY,
+                                  model="x; rm -rf")["isError"])
+        self.assertEqual(self.asked, [])
+        unknown = self.rpc("tools/call", {"name": "approve_feedback", "arguments": {}})
+        self.assertEqual(unknown["error"]["code"], -32602)
+
+    def test_draft_feedback(self):
+        r = self.call("draft_feedback", criterion={"id": "claim", "name": "Clear claim"},
+                      student_text=ESSAY, max_comments=3)["structuredContent"]
+        self.assertEqual((r["grounded"], r["ungrounded"], r["model"]), (1, 1, fc.DEFAULT_MODEL))
+        messages, model = self.asked[0]
+        self.assertIn("at most 3 comments", messages[1]["content"])
+        self.assertTrue(self.call("draft_feedback", criterion={"name": "Claim"}, student_text=ESSAY,
+                                  max_comments=9)["isError"])
+
+    def test_draft_without_ollama(self):
+        def down(messages, model):
+            raise urllib.error.URLError("connection refused")
+
+        self.state = fc.mcp_state(ask=down)
+        r = self.call("draft_feedback", criterion={"name": "Claim"}, student_text=ESSAY)
+        self.assertTrue(r["isError"])
+        self.assertIn("Ollama", r["content"][0]["text"])
+
+    def test_revision_uptake(self):
+        revised = ESSAY.replace("it is good", "later starts help")
+        r = self.call("revision_uptake", quotes=["it is good", "tired students"],
+                      revised_text=revised)["structuredContent"]
+        self.assertEqual([x["uptake"] for x in r["results"]], ["revised", "unchanged"])
+        self.assertEqual(r["revised"], 1)
+
+    def test_class_summary_inline_and_hidden(self):
+        r = self.call("class_summary", drafts=DRAFTS, events=SummaryTests.EVENTS,
+                      criteria=RUBRIC["criteria"])["structuredContent"]
+        self.assertEqual(r["students"], 2)
+        self.assertEqual(r["rows"], fc.class_summary(DRAFTS, SummaryTests.EVENTS, RUBRIC["criteria"]))
+        self.assertIn("# Class summary, draft 1", r["markdown"])
+        h = self.call("class_summary", drafts=DRAFTS, events=SummaryTests.EVENTS,
+                      hide_names=True)["structuredContent"]
+        self.assertNotIn("Ana", json.dumps(h))
+        self.assertEqual([len(row["students_sent"]) for row in h["rows"]], [1, 1])
+
+    def test_class_summary_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, "drafts.json"), "w", encoding="utf-8") as f:
+                json.dump(DRAFTS, f)
+            with open(os.path.join(d, "events.jsonl"), "w", encoding="utf-8") as f:
+                for e in SummaryTests.EVENTS:
+                    f.write(json.dumps(e) + "\n")
+            self.assertIn("--data-dir", self.call("class_summary", drafts_file="drafts.json")
+                          ["content"][0]["text"])
+            self.state["data_dir"] = d
+            r = self.call("class_summary", drafts_file="drafts.json", log_file="events.jsonl")
+            self.assertEqual(r["structuredContent"]["rows"][0]["students_sent"], ["Ana Ruiz"])
+            outside = self.call("class_summary", drafts_file=os.path.join("..", "drafts.json"))
+            self.assertTrue(outside["isError"])
+            self.assertIn("outside", outside["content"][0]["text"])
+
+    def test_stdio_loop(self):
+        lines = [
+            json.dumps({"jsonrpc": "2.0", "id": 1, "method": "server/discover", "params": {"_meta": self.META}}),
+            "",
+            "not json",
+            json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}),
+            json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {
+                "name": "revision_uptake", "_meta": self.META,
+                "arguments": {"quotes": ["café"], "revised_text": "Le café est fermé."}}}),
+            json.dumps({"jsonrpc": "2.0", "id": 3, "method": "nope", "params": {"_meta": self.META}}),
+        ]
+        out = io.BytesIO()
+        fc.serve_mcp(io.BytesIO(("\n".join(lines) + "\n").encode("utf-8")), out, self.state)
+        replies = [json.loads(line) for line in out.getvalue().decode("ascii").splitlines()]
+        self.assertEqual([r.get("id") for r in replies], [1, None, 2, 3])
+        self.assertEqual(replies[1]["error"]["code"], -32700)
+        self.assertEqual(replies[2]["result"]["structuredContent"]["results"][0]["uptake"], "unchanged")
+        self.assertEqual(replies[3]["error"]["code"], -32601)
 
 
 if __name__ == "__main__":

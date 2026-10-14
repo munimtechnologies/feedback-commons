@@ -6,7 +6,8 @@ the device. Every comment must quote the student's text; comments whose quote
 cannot be found are flagged. The teacher accepts, edits or rejects each one,
 in the terminal or on a local web page, and those decisions are logged
 locally. A class summary shows which criteria most students need help with.
-With consent, the log can be exported as a de-identified dataset.
+With consent, the log can be exported as a de-identified dataset. An MCP tool
+server lets other AI tools use the drafting, quote checks and class summary.
 
 Standard library only. By MV2 of Munim, Inc.
 """
@@ -25,7 +26,7 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 SCHEMA = "feedback-commons/1"
 DEFAULT_MODEL = "llama3.2:3b"
@@ -508,6 +509,326 @@ def export_records(events, roster, consented, salt):
     return out
 
 
+# --- MCP tool server -------------------------------------------------------
+
+# Modern MCP sends the version in every request's _meta; legacy MCP opens with initialize.
+MCP_VERSIONS = ("2026-07-28",)
+MCP_LEGACY_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
+META_VERSION = "io.modelcontextprotocol/protocolVersion"
+META_CAPS = "io.modelcontextprotocol/clientCapabilities"
+META_SERVER = "io.modelcontextprotocol/serverInfo"
+SERVER_INFO = {"name": "feedback-commons", "title": "Feedback Commons", "version": __version__}
+MODEL_NAME = re.compile(r"^[\w.:/-]{1,100}$")
+
+MCP_INSTRUCTIONS = (
+    "Tools for teacher-approved writing feedback: draft or check comments that must quote "
+    "the student's text, see whether a revision changed the quoted passages, and summarize "
+    "a class by rubric criterion. No tool approves feedback or sends it to a student; the "
+    "teacher decides with 'feedback_commons.py serve' or 'review'. Results can contain "
+    "student writing and names, and they go to the app that called the tool."
+)
+
+_CRITERION = {"type": "object", "description": "One rubric criterion.",
+              "properties": {"id": {"type": "string"}, "name": {"type": "string"},
+                             "description": {"type": "string"}},
+              "required": ["name"]}
+_TEXT = {"type": "string", "description": "The student's writing."}
+_GRADE = {"type": "string", "description": "Grade level, for example \"8\"."}
+_MAX = {"type": "integer", "minimum": 1, "maximum": 5,
+        "description": "The most comments to ask for (default 2)."}
+_READ_ONLY = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True,
+              "openWorldHint": False}
+
+MCP_TOOLS = [
+    {"name": "build_feedback_prompt", "title": "Build a feedback prompt",
+     "description": "Chat messages asking a model for rubric-aligned feedback on one criterion, "
+                    "where every comment quotes the student (feed up, feed back, feed forward). "
+                    "Send them to your own model, then pass its reply to check_feedback.",
+     "inputSchema": {"type": "object", "properties": {
+         "criterion": _CRITERION, "student_text": _TEXT, "grade": _GRADE, "max_comments": _MAX},
+         "required": ["criterion", "student_text"]},
+     "annotations": _READ_ONLY},
+    {"name": "check_feedback", "title": "Check feedback quotes against the text",
+     "description": "Reads a model's feedback reply (JSON text) or a list of comments and marks "
+                    "each comment grounded only if its quote really appears in the student's "
+                    "text. Show ungrounded comments to the teacher flagged, or drop them.",
+     "inputSchema": {"type": "object", "properties": {
+         "student_text": _TEXT,
+         "reply": {"type": "string", "description": "The model's reply, as text."},
+         "comments": {"type": "array", "items": {"type": "object"},
+                      "description": "Comments with at least 'quote' and 'feed_forward'."}},
+         "required": ["student_text"]},
+     "annotations": _READ_ONLY},
+    {"name": "draft_feedback", "title": "Draft feedback with the local model",
+     "description": "Drafts quote-checked feedback on one criterion with the Ollama model on "
+                    "this computer, so the essay goes to no other model. The comments are "
+                    "drafts for the teacher to accept, edit or reject; nothing reaches a student.",
+     "inputSchema": {"type": "object", "properties": {
+         "criterion": _CRITERION, "student_text": _TEXT, "grade": _GRADE, "max_comments": _MAX,
+         "model": {"type": "string", "description": "Ollama model name (default: the server's)."}},
+         "required": ["criterion", "student_text"]},
+     "annotations": dict(_READ_ONLY, idempotentHint=False)},
+    {"name": "revision_uptake", "title": "Did the revision change the quoted passages?",
+     "description": "For feedback the teacher sent: 'revised' means the quoted passage is no "
+                    "longer in the revised text word for word, 'unchanged' means it still is. "
+                    "A rough signal, not a grade.",
+     "inputSchema": {"type": "object", "properties": {
+         "quotes": {"type": "array", "items": {"type": "string"},
+                    "description": "Quotes from the comments the teacher sent."},
+         "revised_text": {"type": "string", "description": "The student's revised writing."}},
+         "required": ["quotes", "revised_text"]},
+     "annotations": _READ_ONLY},
+    {"name": "class_summary", "title": "Class summary by rubric criterion",
+     "description": "From the teacher's review decisions, one row per criterion: students sent "
+                    "a comment, rejected or unreviewed drafts, quotes not found, revised or "
+                    "unchanged, and a whole-class or small-group suggestion. Only teacher "
+                    "decisions count. Give drafts and events inline, or file names inside the "
+                    "server's --data-dir.",
+     "inputSchema": {"type": "object", "properties": {
+         "drafts": {"type": "object",
+                    "description": "Content of drafts.json: {student: {criterion_id: [comments]}}."},
+         "events": {"type": "array", "items": {"type": "object"},
+                    "description": "Events from the review log (events.jsonl)."},
+         "drafts_file": {"type": "string", "description": "drafts.json inside --data-dir."},
+         "log_file": {"type": "string", "description": "events.jsonl inside --data-dir."},
+         "criteria": {"type": "array", "description": "Rubric criteria, for names and order.",
+                      "items": {"type": "object", "properties": {
+                          "id": {"type": "string"}, "name": {"type": "string"}},
+                          "required": ["id"]}},
+         "draft_number": {"type": "integer", "minimum": 1},
+         "hide_names": {"type": "boolean",
+                        "description": "Replace student names with pseudonyms that last "
+                                       "while the server runs."}}},
+     "annotations": _READ_ONLY},
+]
+
+
+class RpcError(Exception):
+    def __init__(self, code, message, data=None):
+        Exception.__init__(self, message)
+        self.code, self.data = code, data
+
+
+def _text_arg(args, key):
+    v = args.get(key)
+    if not isinstance(v, str) or not v.strip():
+        raise ValueError("'%s' must be a non-empty string" % key)
+    return v
+
+
+def _criterion_arg(args):
+    c = args.get("criterion")
+    if not isinstance(c, dict) or not isinstance(c.get("name"), str) or not c["name"].strip():
+        raise ValueError("'criterion' needs a 'name', for example {\"name\": \"Evidence\"}")
+    return {"name": c["name"], "description": str(c.get("description") or "")}
+
+
+def _max_arg(args):
+    n = args.get("max_comments", 2)
+    if isinstance(n, bool) or not isinstance(n, int) or not 1 <= n <= 5:
+        raise ValueError("'max_comments' must be a whole number from 1 to 5")
+    return n
+
+
+def _checked(comments):
+    return {"comments": comments, "grounded": sum(1 for c in comments if c["grounded"]),
+            "ungrounded": sum(1 for c in comments if not c["grounded"])}
+
+
+def _data_file(root, name):
+    """A file inside the server's data folder; refuses anything outside it."""
+    if not root:
+        raise ValueError("start the server with --data-dir to read files")
+    if not isinstance(name, str) or not name:
+        raise ValueError("file names must be non-empty strings")
+    base = os.path.realpath(root)
+    path = os.path.realpath(os.path.join(base, name))
+    if os.path.commonpath([base, path]) != base:
+        raise ValueError("%s is outside the data folder" % name)
+    return path
+
+
+def tool_build_feedback_prompt(args, state):
+    return {"messages": build_messages(_criterion_arg(args), _text_arg(args, "student_text"),
+                                       str(args.get("grade") or ""), _max_arg(args))}
+
+
+def tool_check_feedback(args, state):
+    text = _text_arg(args, "student_text")
+    if isinstance(args.get("reply"), str):
+        comments = parse_comments(args["reply"])
+    elif isinstance(args.get("comments"), list):
+        comments = parse_comments(json.dumps({"comments": args["comments"]}))
+    else:
+        raise ValueError("give 'reply' (the model's text) or 'comments' (a list)")
+    return _checked(ground(comments, text))
+
+
+def tool_draft_feedback(args, state):
+    criterion, text = _criterion_arg(args), _text_arg(args, "student_text")
+    model = args.get("model") or state["model"]
+    if not isinstance(model, str) or not MODEL_NAME.match(model):
+        raise ValueError("'model' must be an Ollama model name such as llama3.2:3b")
+    messages = build_messages(criterion, text, str(args.get("grade") or ""), _max_arg(args))
+    try:
+        raw = state["ask"](messages, model)
+    except OSError as e:
+        raise ValueError("could not reach Ollama (%s); is it running?" % e)
+    return dict(_checked(ground(parse_comments(raw), text)), model=model)
+
+
+def tool_revision_uptake(args, state):
+    quotes, revised = args.get("quotes"), _text_arg(args, "revised_text")
+    if not isinstance(quotes, list) or not all(isinstance(q, str) for q in quotes):
+        raise ValueError("'quotes' must be a list of strings")
+    results = [{"quote": q, "uptake": revision_uptake(q, revised)} for q in quotes]
+    return {"results": results, "revised": sum(1 for r in results if r["uptake"] == "revised")}
+
+
+def tool_class_summary(args, state):
+    if "drafts_file" in args:
+        drafts = _read_drafts(_data_file(state.get("data_dir"), args["drafts_file"]))
+    else:
+        drafts = args.get("drafts")
+    if "log_file" in args:
+        events = _events_if_any(_data_file(state.get("data_dir"), args["log_file"]))
+    else:
+        events = args.get("events", [])
+    if not isinstance(drafts, dict) or not all(isinstance(per, dict) for per in drafts.values()):
+        raise ValueError("give 'drafts' ({student: {criterion_id: [comments]}}) or 'drafts_file'")
+    if not isinstance(events, list) or not all(isinstance(e, dict) for e in events):
+        raise ValueError("'events' must be a list of review-log events")
+    criteria = args.get("criteria")
+    if criteria is not None and not (isinstance(criteria, list) and
+                                     all(isinstance(c, dict) and c.get("id") for c in criteria)):
+        raise ValueError("every criterion needs an 'id'")
+    draft_number = args.get("draft_number", 1)
+    if isinstance(draft_number, bool) or not isinstance(draft_number, int):
+        raise ValueError("'draft_number' must be a whole number")
+    if args.get("hide_names"):
+        names = {s: pseudonym(s, state["salt"]) for s in drafts}
+        drafts = {names[s]: per for s, per in drafts.items()}
+        events = [dict(e, student=names.get(e.get("student"), e.get("student"))) for e in events]
+    rows = class_summary(drafts, events, criteria, draft_number)
+    return {"students": len(drafts), "rows": rows,
+            "markdown": render_summary(rows, len(drafts), draft_number)}
+
+
+MCP_HANDLERS = {"build_feedback_prompt": tool_build_feedback_prompt,
+                "check_feedback": tool_check_feedback,
+                "draft_feedback": tool_draft_feedback,
+                "revision_uptake": tool_revision_uptake,
+                "class_summary": tool_class_summary}
+
+
+def _tool_result(data, error=None):
+    if error is not None:
+        return {"content": [{"type": "text", "text": error}], "isError": True}
+    return {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False)}],
+            "structuredContent": data, "isError": False}
+
+
+def call_tool(params, state):
+    """Run one tool. Bad arguments come back as a tool error the model can fix."""
+    fn = MCP_HANDLERS.get(params.get("name"))
+    if fn is None:
+        raise RpcError(-32602, "Unknown tool: %s" % params.get("name"))
+    args = params.get("arguments") or {}
+    if not isinstance(args, dict):
+        raise RpcError(-32602, "'arguments' must be an object")
+    try:
+        return _tool_result(fn(args, state))
+    except (ValueError, TypeError, KeyError, AttributeError, OSError) as e:
+        return _tool_result(None, str(e) or e.__class__.__name__)
+
+
+def mcp_state(model=DEFAULT_MODEL, host=DEFAULT_HOST, data_dir=None, ask=None):
+    """Server settings. ask(messages, model) returns a model reply; by default it calls Ollama."""
+    return {"model": model, "data_dir": data_dir, "legacy": None, "salt": os.urandom(16).hex(),
+            "ask": ask or (lambda messages, m: call_ollama(messages, m, host))}
+
+
+def _dispatch(method, params, state):
+    """(result, modern) for one request."""
+    if params is None:
+        params = {}
+    if not isinstance(params, dict):
+        raise RpcError(-32602, "params must be an object")
+    meta = params.get("_meta") if isinstance(params.get("_meta"), dict) else {}
+    if method == "initialize":
+        asked = params.get("protocolVersion")
+        state["legacy"] = asked if asked in MCP_LEGACY_VERSIONS else MCP_LEGACY_VERSIONS[0]
+        return {"protocolVersion": state["legacy"], "capabilities": {"tools": {}},
+                "serverInfo": SERVER_INFO, "instructions": MCP_INSTRUCTIONS}, False
+    version = meta.get(META_VERSION)
+    if version is not None:
+        if version not in MCP_VERSIONS:
+            raise RpcError(-32022, "Unsupported protocol version",
+                           {"supported": list(MCP_VERSIONS), "requested": version})
+        if not isinstance(meta.get(META_CAPS), dict):
+            raise RpcError(-32602, "_meta needs %s" % META_CAPS)
+        modern = True
+    elif state.get("legacy") or method == "ping":
+        modern = False
+    else:
+        raise RpcError(-32602, "send %s %s in _meta, or call initialize first"
+                       % (META_VERSION, MCP_VERSIONS[0]))
+    if method == "server/discover":
+        return {"supportedVersions": list(MCP_VERSIONS), "capabilities": {"tools": {}},
+                "instructions": MCP_INSTRUCTIONS}, modern
+    if method == "ping":
+        return {}, modern
+    if method == "tools/list":
+        return {"tools": MCP_TOOLS}, modern
+    if method == "tools/call":
+        return call_tool(params, state), modern
+    raise RpcError(-32601, "Method not found: %s" % method)
+
+
+def _rpc_error(rid, code, message, data=None):
+    err = {"code": code, "message": message}
+    if data is not None:
+        err["data"] = data
+    return {"jsonrpc": "2.0", "id": rid, "error": err}
+
+
+def handle_mcp(msg, state):
+    """Answer one JSON-RPC message from an MCP client; None when no answer is due."""
+    if not isinstance(msg, dict) or msg.get("jsonrpc") != "2.0" or not isinstance(msg.get("method"), str):
+        if isinstance(msg, dict) and ("result" in msg or "error" in msg):
+            return None  # a response; this server sends no requests
+        return _rpc_error(msg.get("id") if isinstance(msg, dict) else None, -32600, "Invalid request")
+    if "id" not in msg:
+        return None  # notifications such as initialized or cancelled
+    rid = msg["id"]
+    try:
+        result, modern = _dispatch(msg["method"], msg.get("params"), state)
+    except RpcError as e:
+        return _rpc_error(rid, e.code, str(e), e.data)
+    except Exception as e:
+        return _rpc_error(rid, -32603, "Internal error: %s" % e)
+    if modern:
+        result = dict(result, resultType="complete", _meta={META_SERVER: SERVER_INFO})
+    return {"jsonrpc": "2.0", "id": rid, "result": result}
+
+
+def serve_mcp(inp, out, state):
+    """stdio transport over binary streams: one JSON-RPC message per line in and out."""
+    for raw in iter(inp.readline, b""):
+        line = raw.decode("utf-8", "replace")
+        if not line.strip():
+            continue
+        try:
+            msg = json.loads(line)
+        except ValueError:
+            reply = _rpc_error(None, -32700, "Parse error")
+        else:
+            reply = handle_mcp(msg, state)
+        if reply is not None:
+            out.write((json.dumps(reply) + "\n").encode("utf-8"))
+            out.flush()
+
+
 # --- command line ----------------------------------------------------------
 
 def _read_lines(path):
@@ -629,6 +950,12 @@ def cmd_export(args):
     print("exported %d records; review them by hand before sharing" % len(recs), file=sys.stderr)
 
 
+def cmd_mcp(args):
+    state = mcp_state(args.model, args.host, args.data_dir)
+    print("Feedback Commons %s MCP server on stdio" % __version__, file=sys.stderr)
+    serve_mcp(sys.stdin.buffer, sys.stdout.buffer, state)
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="feedback-commons", description=__doc__.splitlines()[0])
     p.add_argument("--version", action="version", version=__version__)
@@ -679,6 +1006,11 @@ def main(argv=None):
     e.add_argument("--consented", required=True, help="file with names of students whose families consented")
     e.add_argument("--out", default="dataset.jsonl")
     e.set_defaults(func=cmd_export)
+    c = sub.add_parser("mcp", help="MCP tool server on stdio, for AI apps and agents")
+    c.add_argument("--data-dir", help="folder whose drafts and logs class_summary may read")
+    c.add_argument("--model", default=DEFAULT_MODEL, help="Ollama model for draft_feedback")
+    c.add_argument("--host", default=DEFAULT_HOST)
+    c.set_defaults(func=cmd_mcp)
     args = p.parse_args(argv)
     args.func(args)
 
