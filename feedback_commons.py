@@ -3,7 +3,9 @@
 Drafts rubric-aligned feedback on student writing with a small open model
 running on the school's own computer (Ollama), so student work never leaves
 the device. Every comment must quote the student's text; comments whose quote
-cannot be found are flagged. The teacher accepts, edits or rejects each one,
+cannot be found are flagged. Comments can be written in each student's own
+language, with an English gloss for the teacher. Rubrics can come from a
+spreadsheet saved as CSV. The teacher accepts, edits or rejects each comment,
 in the terminal or on a local web page, and those decisions are logged
 locally. A class summary shows which criteria most students need help with.
 With consent, the log can be exported as a de-identified dataset. An MCP tool
@@ -13,9 +15,11 @@ Standard library only. By MV2 of Munim, Inc.
 """
 
 import argparse
+import csv
 import datetime
 import hashlib
 import html
+import io
 import json
 import os
 import re
@@ -26,7 +30,7 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 SCHEMA = "feedback-commons/1"
 DEFAULT_MODEL = "llama3.2:3b"
@@ -47,13 +51,21 @@ SYSTEM_PROMPT = (
 
 FIELDS = ("quote", "feed_up", "feed_back", "feed_forward")
 
+# A language name such as Spanish, Tiếng Việt or Português (Brasil); nothing that reads as an instruction.
+LANGUAGE = re.compile(r"\w[\w ()'-]{0,39}")
+ENGLISH = ("english", "en")
+
 
 # --- rubric and prompt -----------------------------------------------------
 
 def load_rubric(path):
-    """Read a rubric JSON file: {"title": ..., "criteria": [{"id", "name", "description"}]}."""
-    with open(path, encoding="utf-8") as f:
-        rubric = json.load(f)
+    """Read a rubric: JSON {"title": ..., "criteria": [{"id", "name", "description"}]}, or a spreadsheet saved as CSV."""
+    if path.lower().endswith(".csv"):
+        with open(path, encoding="utf-8-sig", newline="") as f:
+            rubric = rubric_from_csv(f.read(), os.path.splitext(os.path.basename(path))[0])
+    else:
+        with open(path, encoding="utf-8") as f:
+            rubric = json.load(f)
     validate_rubric(rubric)
     return rubric
 
@@ -72,13 +84,78 @@ def validate_rubric(rubric):
     return True
 
 
-def build_messages(criterion, student_text, grade="", max_comments=2):
-    """Chat messages asking for feedback on one rubric criterion."""
+RUBRIC_NAME_COLUMNS = ("criterion", "criteria", "name", "category", "trait", "skill")
+
+
+def _csv_cell(row, i):
+    return " ".join(row[i].split()) if i is not None and i < len(row) else ""
+
+
+def _slug(s):
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+
+def rubric_from_csv(text, title=""):
+    """Rubric from a spreadsheet saved as CSV, one row per criterion.
+
+    The name column is headed criterion, name, category, trait or skill (else
+    it is the first column). Columns headed id and description are optional.
+    Every other headed column is a performance level, such as "4 - Exceeds",
+    and its cells are added to the criterion's description.
+    """
+    rows = [r for r in csv.reader(io.StringIO(text)) if any(cell.strip() for cell in r)]
+    if not rows:
+        raise ValueError("the CSV file is empty")
+    head = [_csv_cell(rows[0], i) for i in range(len(rows[0]))]
+    low = [h.lower() for h in head]
+    name_col = next((i for i, h in enumerate(low) if h in RUBRIC_NAME_COLUMNS), 0)
+    id_col = low.index("id") if "id" in low else None
+    desc_col = low.index("description") if "description" in low else None
+    levels = [i for i, h in enumerate(head) if h and i not in (name_col, id_col, desc_col)]
+    criteria, seen = [], set()
+    for row in rows[1:]:
+        name = _csv_cell(row, name_col)
+        if not name:
+            continue
+        parts = [_csv_cell(row, desc_col)] if _csv_cell(row, desc_col) else []
+        level_text = ["%s: %s" % (head[i], _csv_cell(row, i).rstrip(".")) for i in levels
+                      if _csv_cell(row, i)]
+        if level_text:
+            parts.append("Levels: " + "; ".join(level_text))
+        cid = _csv_cell(row, id_col)
+        if not cid:
+            base = _slug(name) or "c%d" % (len(criteria) + 1)
+            cid, n = base, 2
+            while cid in seen:
+                cid, n = "%s-%d" % (base, n), n + 1
+        seen.add(cid)
+        criteria.append({"id": cid, "name": name, "description": " ".join(parts)})
+    rubric = {"title": title, "criteria": criteria}
+    validate_rubric(rubric)
+    return rubric
+
+
+def check_language(language):
+    """'' or a language name such as Spanish; raises ValueError for anything else."""
+    language = (language or "").strip()
+    if language and not LANGUAGE.fullmatch(language):
+        raise ValueError("a language must be a name such as Spanish or Tiếng Việt (40 characters at most)")
+    return language
+
+
+def build_messages(criterion, student_text, grade="", max_comments=2, language=""):
+    """Chat messages asking for feedback on one rubric criterion, optionally in the student's language."""
+    language = check_language(language)
     lines = ["Criterion: %s" % criterion["name"]]
     if criterion.get("description"):
         lines.append("What it means: %s" % criterion["description"])
     if grade:
         lines.append("Grade level: %s" % grade)
+    if language:
+        lines.append("Write feed_up, feed_back and feed_forward in %s. Copy each quote exactly "
+                     "as the student wrote it." % language)
+        if language.lower() not in ENGLISH:
+            lines.append('Also give "gloss": feed_forward translated into English, for the teacher.')
     lines.append("Give at most %d comments." % max_comments)
     lines.append("Student text:\n<<<\n%s\n>>>" % student_text.strip())
     return [
@@ -118,6 +195,9 @@ def parse_comments(raw):
         if not isinstance(item, dict):
             continue
         c = {k: str(item.get(k) or "").strip() for k in FIELDS}
+        gloss = str(item.get("gloss") or "").strip()
+        if gloss:
+            c["gloss"] = gloss
         if c["quote"] and c["feed_forward"]:
             comments.append(c)
     return comments
@@ -151,7 +231,7 @@ def _rate(n, d):
     return round(n / d, 3) if d else None
 
 
-def evaluate(rubric, essays, ask, grade="", clock=time.monotonic):
+def evaluate(rubric, essays, ask, grade="", clock=time.monotonic, language=""):
     """How reliable is one model as a feedback drafter on these essays?
 
     essays maps a name to its text; ask(messages) returns the model's reply.
@@ -165,7 +245,7 @@ def evaluate(rubric, essays, ask, grade="", clock=time.monotonic):
         text = essays[name]
         for c in rubric["criteria"]:
             start = clock()
-            raw = ask(build_messages(c, text, grade))
+            raw = ask(build_messages(c, text, grade, language=language))
             seconds += clock() - start
             requests += 1
             try:
@@ -340,6 +420,7 @@ PAGE_HEAD = """<!doctype html>
 body{font-family:system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;line-height:1.5}
 .card{border:1px solid #bbb;border-radius:8px;padding:1rem;margin:1rem 0}
 .flag{color:#a00;font-weight:bold}
+.gloss{background:#f3f3f3;padding:.5rem .75rem;border-radius:6px}
 blockquote{margin:0 0 .75rem;padding-left:.75rem;border-left:4px solid #888}
 textarea{width:100%;min-height:5rem;font:inherit}
 button{font:inherit;margin:.5rem .5rem 0 0;padding:.3rem .9rem}
@@ -365,6 +446,10 @@ def render_review(items, total, token):
     flag = ("" if c.get("grounded") else
             '<p class="flag">This quote was NOT found in the student\'s text. '
             'Check it before accepting.</p>')
+    gloss = ("" if not c.get("gloss") else
+             '<p class="gloss"><b>In English, for you:</b> %s<br><small>The model\'s translation '
+             'of the feed forward, not checked. Students see only the box below.</small></p>'
+             % e(c["gloss"]))
     hidden = "".join('<input type="hidden" name="%s" value="%s">' % (k, e(str(v)))
                      for k, v in (("token", token), ("student", student),
                                   ("criterion", criterion), ("item", i)))
@@ -374,6 +459,7 @@ def render_review(items, total, token):
         + "<blockquote>%s</blockquote>%s" % (e(c.get("quote", "")), flag)
         + "<p><b>Feed up:</b> %s</p>" % e(c.get("feed_up", ""))
         + "<p><b>Feed back:</b> %s</p>" % e(c.get("feed_back", ""))
+        + gloss
         + '<form method="post" action="/review">' + hidden
         + '<label for="text"><b>Feed forward</b> (what the student will see; edit it if you like)</label>'
         + '<textarea id="text" name="text">%s</textarea>' % e(c.get("feed_forward", ""))
@@ -536,6 +622,10 @@ _TEXT = {"type": "string", "description": "The student's writing."}
 _GRADE = {"type": "string", "description": "Grade level, for example \"8\"."}
 _MAX = {"type": "integer", "minimum": 1, "maximum": 5,
         "description": "The most comments to ask for (default 2)."}
+_LANG = {"type": "string", "maxLength": 40,
+         "description": "Language for the comments, for example \"Spanish\". Quotes stay as the "
+                        "student wrote them, and each comment also gets an English 'gloss' for "
+                        "the teacher."}
 _READ_ONLY = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True,
               "openWorldHint": False}
 
@@ -545,7 +635,8 @@ MCP_TOOLS = [
                     "where every comment quotes the student (feed up, feed back, feed forward). "
                     "Send them to your own model, then pass its reply to check_feedback.",
      "inputSchema": {"type": "object", "properties": {
-         "criterion": _CRITERION, "student_text": _TEXT, "grade": _GRADE, "max_comments": _MAX},
+         "criterion": _CRITERION, "student_text": _TEXT, "grade": _GRADE, "max_comments": _MAX,
+         "language": _LANG},
          "required": ["criterion", "student_text"]},
      "annotations": _READ_ONLY},
     {"name": "check_feedback", "title": "Check feedback quotes against the text",
@@ -565,6 +656,7 @@ MCP_TOOLS = [
                     "drafts for the teacher to accept, edit or reject; nothing reaches a student.",
      "inputSchema": {"type": "object", "properties": {
          "criterion": _CRITERION, "student_text": _TEXT, "grade": _GRADE, "max_comments": _MAX,
+         "language": _LANG,
          "model": {"type": "string", "description": "Ollama model name (default: the server's)."}},
          "required": ["criterion", "student_text"]},
      "annotations": dict(_READ_ONLY, idempotentHint=False)},
@@ -630,6 +722,13 @@ def _max_arg(args):
     return n
 
 
+def _language_arg(args):
+    v = args.get("language") or ""
+    if not isinstance(v, str):
+        raise ValueError("'language' must be a string such as \"Spanish\"")
+    return v
+
+
 def _checked(comments):
     return {"comments": comments, "grounded": sum(1 for c in comments if c["grounded"]),
             "ungrounded": sum(1 for c in comments if not c["grounded"])}
@@ -650,7 +749,8 @@ def _data_file(root, name):
 
 def tool_build_feedback_prompt(args, state):
     return {"messages": build_messages(_criterion_arg(args), _text_arg(args, "student_text"),
-                                       str(args.get("grade") or ""), _max_arg(args))}
+                                       str(args.get("grade") or ""), _max_arg(args),
+                                       _language_arg(args))}
 
 
 def tool_check_feedback(args, state):
@@ -669,7 +769,8 @@ def tool_draft_feedback(args, state):
     model = args.get("model") or state["model"]
     if not isinstance(model, str) or not MODEL_NAME.match(model):
         raise ValueError("'model' must be an Ollama model name such as llama3.2:3b")
-    messages = build_messages(criterion, text, str(args.get("grade") or ""), _max_arg(args))
+    messages = build_messages(criterion, text, str(args.get("grade") or ""), _max_arg(args),
+                              _language_arg(args))
     try:
         raw = state["ask"](messages, model)
     except OSError as e:
@@ -851,13 +952,35 @@ def _read_drafts(path):
         return json.load(f)
 
 
+def read_languages(path):
+    """{student: language} from a CSV of student,language rows; a header row is fine."""
+    languages = {}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.reader(f):
+            student, language = _csv_cell(row, 0), _csv_cell(row, 1)
+            if not student or not language:
+                continue
+            if (student.lower(), language.lower()) == ("student", "language"):
+                continue
+            languages[student] = check_language(language)
+    return languages
+
+
 def cmd_draft(args):
     rubric = load_rubric(args.rubric)
+    essays = _read_essays(args.essays)
+    languages = read_languages(args.languages) if args.languages else {}
+    unknown = sorted(set(languages) - set(essays))
+    if unknown:
+        print("no essay file for %s; check the names in %s" % (", ".join(unknown), args.languages),
+              file=sys.stderr)
     results = {}
-    for student, text in _read_essays(args.essays).items():
+    for student, text in essays.items():
+        language = languages.get(student, args.language)
         per = {}
         for c in rubric["criteria"]:
-            raw = call_ollama(build_messages(c, text, args.grade), args.model, args.host)
+            raw = call_ollama(build_messages(c, text, args.grade, language=language),
+                              args.model, args.host)
             try:
                 per[c["id"]] = ground(parse_comments(raw), text)
             except ValueError as e:
@@ -873,6 +996,8 @@ def _ask(comment):
     flag = "" if comment.get("grounded") else "  [quote NOT found in the text]"
     print('\n"%s"%s\n  up:      %s\n  back:    %s\n  forward: %s' % (
         comment["quote"], flag, comment["feed_up"], comment["feed_back"], comment["feed_forward"]))
+    if comment.get("gloss"):
+        print("  english: %s  (the model's translation, not checked)" % comment["gloss"])
     while True:
         a = input("[a]ccept, [e]dit, [r]eject? ").strip().lower()[:1]
         if a == "a":
@@ -930,13 +1055,22 @@ def cmd_eval(args):
     essays = _read_essays(args.essays)
     reports = []
     for model in [m.strip() for m in args.models.split(",") if m.strip()]:
-        r = evaluate(rubric, essays, lambda m, model=model: call_ollama(m, model, args.host), args.grade)
+        r = evaluate(rubric, essays, lambda m, model=model: call_ollama(m, model, args.host), args.grade,
+                     language=args.language)
         reports.append(dict({"model": model}, **r))
         print("%s: usable %s, grounded %s, %s s/request" % (
             model, r["usable_rate"], r["grounded_rate"], r["seconds_per_request"]), file=sys.stderr)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump({"schema": SCHEMA, "version": __version__, "rubric": rubric.get("title", ""),
-                   "reports": reports}, f, indent=2, ensure_ascii=False)
+                   "language": args.language, "reports": reports}, f, indent=2, ensure_ascii=False)
+
+
+def cmd_rubric(args):
+    rubric = load_rubric(args.source)
+    with open(args.out, "w", encoding="utf-8") as f:
+        json.dump(rubric, f, indent=2, ensure_ascii=False)
+    print("wrote %s with %d criteria; check the names and descriptions before drafting"
+          % (args.out, len(rubric["criteria"])), file=sys.stderr)
 
 
 def cmd_export(args):
@@ -961,10 +1095,12 @@ def main(argv=None):
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("draft", help="draft feedback for a folder of .txt essays")
-    d.add_argument("rubric")
+    d.add_argument("rubric", help="rubric .json, or a spreadsheet saved as .csv")
     d.add_argument("essays")
     d.add_argument("--out", default="drafts.json")
     d.add_argument("--grade", default="")
+    d.add_argument("--language", default="", help="write comments in this language, e.g. Spanish")
+    d.add_argument("--languages", help="CSV of student,language rows for students who need another language")
     d.add_argument("--model", default=DEFAULT_MODEL)
     d.add_argument("--host", default=DEFAULT_HOST)
     d.set_defaults(func=cmd_draft)
@@ -997,9 +1133,14 @@ def main(argv=None):
     v.add_argument("essays")
     v.add_argument("--models", default=DEFAULT_MODEL, help="comma-separated Ollama models")
     v.add_argument("--grade", default="")
+    v.add_argument("--language", default="", help="ask for comments in this language")
     v.add_argument("--host", default=DEFAULT_HOST)
     v.add_argument("--out", default="eval.json")
     v.set_defaults(func=cmd_eval)
+    b = sub.add_parser("rubric", help="turn a spreadsheet rubric saved as CSV into rubric JSON you can check")
+    b.add_argument("source", help="rubric .csv (or .json, to check it)")
+    b.add_argument("--out", default="rubric.json")
+    b.set_defaults(func=cmd_rubric)
     e = sub.add_parser("export", help="de-identified export for consented students")
     e.add_argument("log")
     e.add_argument("--roster", required=True, help="file with one student name per line")

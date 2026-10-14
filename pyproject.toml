@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "feedback-commons"
+version = "0.5.0"
+description = "Local-first, teacher-approved writing feedback: a small open model on the school's own computer drafts quote-grounded comments, and the teacher decides."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [{name = "MV2 of Munim, Inc.", email = "munimversion2@gmail.com"}]
+keywords = ["education", "feedback", "writing", "teachers", "ollama", "mcp"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Education",
+    "Topic :: Education",
+]
+
+[project.urls]
+Homepage = "https://github.com/munimv2/feedback-commons"
+Issues = "https://github.com/munimv2/feedback-commons/issues"
+
+[project.scripts]
+feedback-commons = "feedback_commons:main"
+
+[tool.setuptools]
+py-modules = ["feedback_commons"]
