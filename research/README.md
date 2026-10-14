@@ -122,3 +122,48 @@ Pending.
    balanced, and the number of essays finished will be reported with the results. The job
    now runs the study before the tool's sample-essay check, and that check covers English
    only. No output from either job had been seen when this change was made.
+
+## Exploratory analysis declared before results
+
+Added on 2026-10-14 at about 19:40 UTC. The study job was still running on the runner, and
+none of its output had been seen. This analysis is **exploratory**. It is not part of the
+preregistered analysis above, and it will be labelled exploratory wherever it is reported.
+
+**Why.** A lower exact-quote rate in the low Conventions band could have two different
+causes. Low-band essays have more misspellings, so a model has more chances to "fix" a word
+while quoting. Or models could treat the same kind of passage differently when the essay is
+weaker. The preregistered band gap cannot tell these apart.
+
+**What `error_conditioned.py` does.** It reads the study's `requests.jsonl` and selects the
+same essays (same seed). For every quote the study placed in the essay (exact, punctuation or
+altered), it finds the student's own passage behind the quote with the study's matching rule
+(`best_window`). The passage counts as *misspelled* if pyspellchecker does not know at least
+one of its words. Words with digits are ignored, and a contraction counts as known if its
+first part is. Then, for each model × language:
+
+- the verbatim rate (exact or punctuation-only) of quotes from misspelled passages and from
+  clean passages, and their difference, pooled over quotes, with a 95% interval from 2,000
+  bootstrap resamples of whole essays (seed 7);
+- the same two rates within each Conventions band;
+- the share of misspelled words that the quote kept as the student wrote them;
+- per band, the mean share of essay words the spell checker does not know.
+
+Quotes not placed in the essay (not_in_text, too_short) have no passage and are only counted.
+Only aggregate numbers are written (`error_conditioned.json` and `.md`), never essay text.
+`test_error_conditioned.py` holds its offline tests.
+
+**How to read it.** Suppose quotes from misspelled passages are much less often verbatim, and
+the two bands look alike once passages are split this way. Then the band gap is mostly "more
+misspellings to fix". If a band gap remains among clean passages, something else is going on.
+No threshold is set in advance, and every interval is reported as it is.
+
+**Limits.** A spell checker flags proper nouns and rare words and misses real-word errors
+(there/their), so "misspelled" is a rough label. The analysis inherits the study's small
+sample and mechanical matching.
+
+**Prior art, re-checked at the same time.** Mah, Tan, Phalen, Sparks and Demszky
+(EdWorkingPaper 25-1193, 2025) asked models for an exact excerpt from the essay with each
+comment. Their analysis is a qualitative comparison with expert teachers' feedback, and as
+far as we found it reports no rate of altered excerpts. Almousa et al. (arXiv 2609.28026,
+2026) classify the focus of feedback, not its quotes. Neither changes the novelty statement
+above.
