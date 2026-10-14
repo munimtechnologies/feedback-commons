@@ -24,7 +24,7 @@ Each comment follows a well-known feedback design ("feed up, feed back, feed for
 You need Python 3.8+ and Ollama with a small model (default `llama3.2:3b`). No other packages are required. Either download `feedback_commons.py` and run it with `python feedback_commons.py ...`, or install the `feedback-commons` command:
 
 ```
-pip install git+https://github.com/munimv2/feedback-commons
+pip install git+https://github.com/munimtechnologies/feedback-commons
 ollama pull llama3.2:3b
 ```
 
@@ -147,7 +147,7 @@ If you installed it with pip, use `"command": "feedback-commons"` and `"args": [
 - The only network calls go to your own Ollama server, which is `http://localhost:11434` by default.
 
 ### Before you start
-Check that your computer can run a local model with [local-ai-checkup](https://github.com/munimv2/local-ai-checkup).
+Check that your computer can run a local model with [local-ai-checkup](https://github.com/munimtechnologies/local-ai-checkup).
 
 ## Tests
 ```
@@ -159,7 +159,7 @@ The tests run offline and don't need Ollama.
 - **0.5.0:**
   - Added `--language` and `--languages` to write comments in each student's language, with an English gloss for the teacher on the review page and in the terminal. `eval` and the MCP tools take a language too.
   - Rubrics can be spreadsheets saved as CSV, and the new `rubric` command shows what was read.
-  - Added `pyproject.toml`, so `pip install git+https://github.com/munimv2/feedback-commons` installs a `feedback-commons` command.
+  - Added `pyproject.toml`, so `pip install git+https://github.com/munimtechnologies/feedback-commons` installs a `feedback-commons` command.
 - **0.4.0:** Added `mcp`, an MCP tool server on stdio, with tools for prompts, quote checks, local drafting, revision checks and the class summary. It speaks MCP 2026-07-28 and the older handshake.
 - **0.3.0:** Added `summary`, a class-level table per rubric criterion: who got a comment, what you sent or rejected, and what students revised, with a whole-class or small-group suggestion.
 - **0.2.0:**

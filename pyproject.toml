@@ -20,8 +20,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/munimv2/feedback-commons"
-Issues = "https://github.com/munimv2/feedback-commons/issues"
+Homepage = "https://github.com/munimtechnologies/feedback-commons"
+Issues = "https://github.com/munimtechnologies/feedback-commons/issues"
 
 [project.scripts]
 feedback-commons = "feedback_commons:main"
