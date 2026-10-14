@@ -112,4 +112,13 @@ Pending.
 
 ## Deviations
 
-None so far.
+1. **Hardware (2026-10-14, before any output existed).** The job queued at 08:30 UTC
+   (`quote-fidelity-v1`) asked the shared runner for 8 CPU cores and 8 GB of memory, and it
+   was never scheduled: no job asking for more than 6 cores or 6 GB had run there. It was
+   re-filed at about 14:10 UTC as `quote-fidelity-v2` with **4 CPU cores and 6 GB**. The
+   models, prompt, sample, seed, criteria, languages, 210-minute budget and analysis are
+   unchanged. Fewer cores means slower requests, so fewer than 30 essays may finish within
+   the budget. Essays are taken whole and the bands alternate, so a shorter run stays
+   balanced, and the number of essays finished will be reported with the results. The job
+   now runs the study before the tool's sample-essay check, and that check covers English
+   only. No output from either job had been seen when this change was made.
