@@ -2,7 +2,7 @@
 
 Feedback Commons is a local-first writing-feedback assistant for teachers. It runs on your own computer, so student work never leaves your device.
 
-- **Feedback tied to the text.** It drafts rubric-aligned feedback with a small open model running on your computer through [Ollama](https://ollama.com). Every comment has to quote the student's own words. If the quote isn't actually in the text, the comment is flagged.
+- **Feedback tied to the text.** It drafts rubric-aligned feedback with a small open model running on your computer through [Ollama](https://ollama.com). Every comment has to quote the student's own words. If the quote isn't actually in the text, the comment is flagged. If the model changed some of the student's words while quoting them (small models often quietly fix a misspelling), you see what the student really wrote.
 - **The teacher decides.** You accept, edit or reject each comment, in the terminal or on a simple web page that only your computer can open. Nothing reaches a student without your approval.
 - **In the student's language.** Comments can be written in Spanish, Vietnamese, Somali or any language your model handles, for the whole class or student by student. Each one comes with an English gloss so you can still judge it before you approve it.
 - **Your rubric, from a spreadsheet.** Save your rubric as CSV, one row per criterion and one column per level, and use it as-is.
@@ -11,7 +11,7 @@ Feedback Commons is a local-first writing-feedback assistant for teachers. It ru
 - **An open dataset, with consent.** Your decisions are logged on your machine. With consent, they can be exported as a de-identified dataset of "AI draft → teacher-approved feedback" pairs. Shared openly, such data can show which feedback teachers keep and which feedback students act on.
 - **For developers: an MCP tool server.** Other AI apps and agents can use the drafting, quote checks, revision checks and class summary through the Model Context Protocol. No tool approves feedback; that stays with the teacher.
 
-**Status: early prototype (v0.5.0).** It has no classroom users yet, and we're looking for teachers who want to try it and tell us what's wrong. Open an issue or email munimversion2@gmail.com.
+**Status: early prototype (v0.6.0).** It has no classroom users yet, and we're looking for teachers who want to try it and tell us what's wrong. Open an issue or email munimversion2@gmail.com.
 
 ## How it works
 Each comment follows a well-known feedback design ("feed up, feed back, feed forward"):
@@ -19,6 +19,19 @@ Each comment follows a well-known feedback design ("feed up, feed back, feed for
 - **feed up:** what good work looks like for this criterion
 - **feed back:** how this passage measures up
 - **feed forward:** one concrete next step
+
+### How quotes are checked
+Every quote is compared with the student's text and given one of these labels:
+
+| Label | Meaning | On the review page |
+|---|---|---|
+| `exact` | Found in the text (case, spacing and curly quotes don't matter) | No flag |
+| `punctuation` | The same words in the same order; only punctuation differs | No flag |
+| `altered` | A close match, but some of the student's words were changed, for example a misspelling silently corrected | Flagged, with the student's real words |
+| `not_in_text` | Nothing in the text is that close: invented or paraphrased | Flagged |
+| `too_short` | Under 3 characters, too short to check | Flagged |
+
+Why `altered` matters: if a model quotes "their homework" where the student wrote "there homework", a plain check calls the quote invented, and the comment may be about exactly the error the quote hides. Showing the student's own words lets you decide whether the comment still fits. "Close" means at least 70% of the words match, in order.
 
 ## Install
 You need Python 3.8+ and Ollama with a small model (default `llama3.2:3b`). No other packages are required. Either download `feedback_commons.py` and run it with `python feedback_commons.py ...`, or install the `feedback-commons` command:
@@ -38,9 +51,9 @@ python feedback_commons.py export events.jsonl --roster roster.txt --consented c
 ```
 
 - **Essays:** `essays/` holds one `.txt` file per student. The file name is the student's name. To try the tool first without any student work, use the made-up sample essays in `examples/essays/`.
-- **Review:** `serve` opens a review page at http://127.0.0.1:8765/. It shows one comment at a time, flags quotes that aren't in the text, and lets you accept, edit or reject. You can stop at any point and pick up where you left off. If you'd rather work in the terminal, `review drafts.json --log events.jsonl` does the same thing there.
+- **Review:** `serve` opens a review page at http://127.0.0.1:8765/. It shows one comment at a time, flags quotes that aren't in the text or that changed the student's words, and lets you accept, edit or reject. You can stop at any point and pick up where you left off. If you'd rather work in the terminal, `review drafts.json --log events.jsonl` does the same thing there.
 - **Class summary:** `summary` writes a table with one row per criterion (see below).
-- **Revisions:** `uptake` reads the revised essays in `revised/`, which use the same file names as `essays/`. For each comment you sent, it logs whether the student changed the quoted passage. That's a rough signal, not a grade.
+- **Revisions:** `uptake` reads the revised essays in `revised/`, which use the same file names as `essays/`. For each comment you sent, it logs whether the student changed the quoted passage. When the model's quote changed the student's words, it looks for the student's own words. That's a rough signal, not a grade.
 - **Roster:** `roster.txt` lists every student name, one per line. Export uses it to scrub names.
 - **Consent:** `export` only includes students listed in `consented.txt`. Put a name there only after you have permission under your school's rules.
 
@@ -57,7 +70,7 @@ For some students only, list them in a CSV file with one `student,language` row 
 python feedback_commons.py draft sample_rubric.json essays/ --languages languages.csv --out drafts.json
 ```
 
-- The quote stays exactly as the student wrote it, so the quote check still works.
+- The model is asked to keep the quote exactly as the student wrote it, so the quote check still works.
 - Feed up, feed back and feed forward are written in the chosen language. Each comment also carries a **gloss**, the model's English translation of the feed forward, shown on the review page as "In English, for you". Students see only the feed forward.
 - The gloss is the model's translation, not a checked one. Small models write some languages much better than others. Before you use a language with students, run `eval` with `--language` on sample essays, and if you can, ask a colleague who reads the language to look at a few comments.
 
@@ -76,7 +89,7 @@ Save your rubric as CSV (in Google Sheets: File → Download → CSV; in Excel: 
 `summary` turns your review decisions into a picture of the class, one row per rubric criterion:
 - **Students sent a comment:** how many students you sent (accepted or edited) at least one comment on this criterion. The model's drafts alone don't count; your decisions do.
 - **Comments sent, rejected, not reviewed:** your decisions so far.
-- **Quote not found:** drafted comments whose quote wasn't in the student's text.
+- **Quote not found or changed:** drafted comments whose quote wasn't in the student's text as written (labels `altered`, `not_in_text` and `too_short` above).
 - **Revised / unchanged:** after you run `uptake`, how many sent comments led to a change in the quoted passage.
 - **Suggestion:** a rule of thumb. If half the class or more got a comment on a criterion, it suggests a whole-class mini-lesson; if fewer did, a small group. You decide.
 
@@ -91,7 +104,9 @@ python feedback_commons.py eval sample_rubric.json essays/ --models llama3.2:3b,
 
 For each model it reports:
 - **usable_rate:** the share of replies that could be read
-- **grounded_rate:** the share of comments whose quote really appears in the essay
+- **grounded_rate:** the share of comments whose quote really appears in the essay (exact or punctuation only)
+- **matches:** how many quotes got each label above
+- **altered_rate:** the share of quotes in which the model changed the student's words
 - **seconds_per_request:** how long each reply takes
 
 Add `--language Spanish` (or another language) to check the models in that language. `eval` doesn't judge whether the advice is good. That's your call. Run it on essays you're allowed to use, such as public sample essays, before you run it on your students' work.
@@ -115,7 +130,7 @@ python feedback_commons.py mcp --data-dir /path/to/class-folder
 | Tool | What it does |
 |---|---|
 | `build_feedback_prompt` | Chat messages that ask any model for rubric-aligned, quote-grounded feedback on one criterion, optionally in another `language` |
-| `check_feedback` | Reads a model's reply (or a list of comments) and marks each comment grounded only if its quote is really in the student's text |
+| `check_feedback` | Reads a model's reply (or a list of comments), labels each quote as above and marks it grounded only if it is really in the student's text; `altered` quotes come with the student's real words in `student_words` |
 | `draft_feedback` | Drafts and checks feedback with the Ollama model on this computer, optionally in another `language` |
 | `revision_uptake` | For quotes from sent comments: did the revised text change each passage? |
 | `class_summary` | The class summary above, from drafts and review events given inline or as files in `--data-dir`; `hide_names` swaps names for pseudonyms |
@@ -149,6 +164,9 @@ If you installed it with pip, use `"command": "feedback-commons"` and `"args": [
 ### Before you start
 Check that your computer can run a local model with [local-ai-checkup](https://github.com/munimtechnologies/local-ai-checkup).
 
+## Research
+[`research/`](research/) holds a preregistered study of how faithfully small local models quote English learners' essays: how often the quote is exact, and how often the model quietly changes the student's words, by Conventions score and feedback language. The `altered` label above comes from that study's classifier.
+
 ## Tests
 ```
 python -m unittest -v
@@ -156,6 +174,11 @@ python -m unittest -v
 The tests run offline and don't need Ollama.
 
 ## Changes
+- **0.6.0:**
+  - Quote checks now label every quote `exact`, `punctuation`, `altered`, `not_in_text` or `too_short`. Quotes that differ from the text only in punctuation are no longer flagged. For `altered` quotes, the review page and the terminal show the student's real words.
+  - `uptake` looks for the student's own words when the model's quote had changed them. Before, such a comment always counted as "revised".
+  - `eval` reports how many quotes got each label, and the share of `altered` quotes. The MCP `check_feedback` tool returns the labels, an `altered` count and `student_words`.
+  - Review events record the quote's label, and `export` keeps it.
 - **0.5.0:**
   - Added `--language` and `--languages` to write comments in each student's language, with an English gloss for the teacher on the review page and in the terminal. `eval` and the MCP tools take a language too.
   - Rubrics can be spreadsheets saved as CSV, and the new `rubric` command shows what was read.

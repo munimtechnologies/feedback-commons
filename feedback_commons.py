@@ -3,7 +3,9 @@
 Drafts rubric-aligned feedback on student writing with a small open model
 running on the school's own computer (Ollama), so student work never leaves
 the device. Every comment must quote the student's text; comments whose quote
-cannot be found are flagged. Comments can be written in each student's own
+cannot be found are flagged, and when the model changed some of the student's
+words in a quote (for example by fixing a misspelling), the teacher is shown
+what the student really wrote. Comments can be written in each student's own
 language, with an English gloss for the teacher. Rubrics can come from a
 spreadsheet saved as CSV. The teacher accepts, edits or rejects each comment,
 in the terminal or on a local web page, and those decisions are logged
@@ -11,12 +13,13 @@ locally. A class summary shows which criteria most students need help with.
 With consent, the log can be exported as a de-identified dataset. An MCP tool
 server lets other AI tools use the drafting, quote checks and class summary.
 
-Standard library only. By MV2 of Munim, Inc.
+Standard library only. By MV2 of Munim, Inc. Apache-2.0.
 """
 
 import argparse
 import csv
 import datetime
+import difflib
 import hashlib
 import html
 import io
@@ -30,7 +33,7 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 SCHEMA = "feedback-commons/1"
 DEFAULT_MODEL = "llama3.2:3b"
@@ -215,9 +218,77 @@ def quote_found(quote, text):
     return len(q) >= 3 and q in _norm(text)
 
 
+MATCHES = ("exact", "punctuation", "altered", "not_in_text", "too_short")
+WORD = re.compile(r"[^\W_]+(?:['‘’][^\W_]+)*")
+ALTERED_MIN = 0.7  # word-level similarity: 2 changed words in a 10-word quote is 0.8
+
+
+def _words(s):
+    """(lower-case words of s, their (start, end) in s); apostrophes inside words are kept."""
+    found = list(WORD.finditer(s))
+    return ([m.group(0).lower().replace("‘", "'").replace("’", "'") for m in found],
+            [m.span() for m in found])
+
+
+def _closest(quote_words, text_words):
+    """(similarity, start, end) of the run of text words most like the quote."""
+    best = (0.0, 0, 0)
+    n = len(quote_words)
+    sm = difflib.SequenceMatcher(autojunk=False)
+    sm.set_seq2(quote_words)
+    for size in range(max(1, n - 2), n + 3):
+        for i in range(max(1, len(text_words) - size + 1)):
+            sm.set_seq1(text_words[i:i + size])
+            if sm.real_quick_ratio() <= best[0] or sm.quick_ratio() <= best[0]:
+                continue
+            r = sm.ratio()
+            if r > best[0]:
+                best = (r, i, min(i + size, len(text_words)))
+    return best
+
+
+def match_quote(quote, text):
+    """How faithfully a comment's quote copies the student's text.
+
+    {"match": kind}, where kind is exact (found as quote_found checks it),
+    punctuation (the same words in the same order, only punctuation differs),
+    altered (a close match with some of the student's words changed, for
+    example a misspelling silently corrected), not_in_text or too_short. For
+    punctuation and altered, "student_words" is the passage as the student
+    wrote it, so the teacher can see their real words.
+    """
+    if len(_norm(quote).strip(" .\"'")) < 3:
+        return {"match": "too_short"}
+    if quote_found(quote, text):
+        return {"match": "exact"}
+    qw = _words(quote)[0]
+    tw, spans = _words(text)
+    if not qw or not tw:
+        return {"match": "not_in_text"}
+    n = len(qw)
+    start = next((i for i in range(len(tw) - n + 1) if tw[i:i + n] == qw), None)
+    if start is not None:
+        kind, end = "punctuation", start + n
+    else:
+        ratio, start, end = _closest(qw, tw)
+        if ratio < ALTERED_MIN:
+            return {"match": "not_in_text"}
+        kind = "altered"
+    return {"match": kind, "student_words": " ".join(text[spans[start][0]:spans[end - 1][1]].split())}
+
+
 def ground(comments, text):
-    """Mark each comment grounded or not; ungrounded ones are shown to the teacher flagged."""
-    return [dict(c, grounded=quote_found(c["quote"], text)) for c in comments]
+    """Mark each comment grounded or not; ungrounded ones are shown to the teacher flagged.
+
+    Only exact and punctuation-only quotes count as grounded. Each comment
+    also gets its "match" kind, and "student_words" when the student's real
+    words differ from the quote.
+    """
+    out = []
+    for c in comments:
+        m = match_quote(c["quote"], text)
+        out.append(dict(c, grounded=m["match"] in ("exact", "punctuation"), **m))
+    return out
 
 
 def revision_uptake(quote, revised_text):
@@ -236,10 +307,12 @@ def evaluate(rubric, essays, ask, grade="", clock=time.monotonic, language=""):
 
     essays maps a name to its text; ask(messages) returns the model's reply.
     Counts replies that could not be used, comments whose quote is really in
-    the essay, and seconds per request. It does not judge whether the advice
-    is good: that is the teacher's call.
+    the essay, how every quote matched (see match_quote), and seconds per
+    request. It does not judge whether the advice is good: that is the
+    teacher's call.
     """
     requests = unusable = comments = grounded = 0
+    matches = dict.fromkeys(MATCHES, 0)
     seconds = 0.0
     for name in sorted(essays):
         text = essays[name]
@@ -255,10 +328,13 @@ def evaluate(rubric, essays, ask, grade="", clock=time.monotonic, language=""):
                 continue
             comments += len(got)
             grounded += sum(1 for g in got if g["grounded"])
+            for g in got:
+                matches[g["match"]] += 1
     return {"essays": len(essays), "requests": requests, "unusable_replies": unusable,
             "usable_rate": _rate(requests - unusable, requests),
             "comments": comments, "grounded_comments": grounded,
             "grounded_rate": _rate(grounded, comments),
+            "matches": matches, "altered_rate": _rate(matches["altered"], comments),
             "seconds_per_request": round(seconds / requests, 2) if requests else None}
 
 
@@ -311,7 +387,11 @@ def pending(drafts, events, draft_number=1):
 
 
 def uptake_events(drafts, events, revised, draft_number=1):
-    """For each comment the teacher sent (accepted or edited), did the next draft change that passage?"""
+    """For each comment the teacher sent (accepted or edited), did the next draft change that passage?
+
+    When the model's quote differs from the student's words, the student's
+    words are what is looked for in the revision.
+    """
     sent = {(e.get("student"), e.get("criterion"), e.get("item")) for e in events
             if e.get("kind") == "review" and e.get("action") in ("accept", "edit")
             and e.get("draft_number", 1) == draft_number}
@@ -322,9 +402,10 @@ def uptake_events(drafts, events, revised, draft_number=1):
         for criterion, comments in per.items():
             for i, c in enumerate(comments):
                 if (student, criterion, i) in sent:
+                    passage = c.get("student_words") or c["quote"]
                     out.append({"student": student, "criterion": criterion, "item": i,
                                 "draft_number": draft_number,
-                                "uptake": revision_uptake(c["quote"], revised[student])})
+                                "uptake": revision_uptake(passage, revised[student])})
     return out
 
 
@@ -396,7 +477,7 @@ def render_summary(rows, total, draft_number=1):
            "(accepted or edited). Suggestions are a rule of thumb: half the class or more "
            "suggests a whole-class mini-lesson. You decide." % total, "",
            "| Criterion | Students sent a comment | Comments sent | Rejected | Not reviewed "
-           "| Quote not found | Revised / unchanged | Suggestion |",
+           "| Quote not found or changed | Revised / unchanged | Suggestion |",
            "|---|---|---|---|---|---|---|---|"]
     for r in rows:
         out.append("| %s | %d of %d | %d | %d | %d | %d | %d / %d | %s |" % (
@@ -443,9 +524,15 @@ def render_review(items, total, token):
                 "You can close this tab and stop the server with Ctrl+C.</p>" % total)
         return PAGE_HEAD + body + PAGE_TAIL
     student, criterion, i, c = items[0]
-    flag = ("" if c.get("grounded") else
-            '<p class="flag">This quote was NOT found in the student\'s text. '
-            'Check it before accepting.</p>')
+    if c.get("grounded"):
+        flag = ""
+    elif c.get("match") == "altered":
+        flag = ('<p class="flag">The model changed some of the student\'s words in this quote. '
+                'The student wrote: &ldquo;%s&rdquo;. Check that the comment still fits what '
+                'the student really wrote.</p>' % e(c.get("student_words", "")))
+    else:
+        flag = ('<p class="flag">This quote was NOT found in the student\'s text. '
+                'Check it before accepting.</p>')
     gloss = ("" if not c.get("gloss") else
              '<p class="gloss"><b>In English, for you:</b> %s<br><small>The model\'s translation '
              'of the feed forward, not checked. Students see only the box below.</small></p>'
@@ -471,6 +558,10 @@ def render_review(items, total, token):
     return PAGE_HEAD + body + PAGE_TAIL
 
 
+def _match_field(comment):
+    return {"match": comment["match"]} if comment.get("match") else {}
+
+
 def decide(drafts, form, token):
     """Turn a submitted review form into review-event fields. Raises ValueError."""
     if not secrets.compare_digest(form.get("token", "").encode("utf-8"), token.encode("utf-8")):
@@ -488,7 +579,7 @@ def decide(drafts, form, token):
         raise ValueError("an edit needs some text")
     d = review(c, lambda _: (action, text or None))
     return dict(student=student, criterion=criterion, item=item, quote=c["quote"],
-                grounded=c.get("grounded", False), **d)
+                grounded=c.get("grounded", False), **_match_field(c), **d)
 
 
 def make_handler(drafts, log_path, draft_number=1, token=None):
@@ -574,7 +665,7 @@ def pseudonym(student, salt):
     return "s-" + hashlib.sha256((salt + "\0" + student).encode("utf-8")).hexdigest()[:10]
 
 
-KEEP = {"schema", "ts", "kind", "criterion", "action", "grounded", "draft_number",
+KEEP = {"schema", "ts", "kind", "criterion", "action", "grounded", "match", "draft_number",
         "uptake", "seconds"}
 
 
@@ -642,7 +733,11 @@ MCP_TOOLS = [
     {"name": "check_feedback", "title": "Check feedback quotes against the text",
      "description": "Reads a model's feedback reply (JSON text) or a list of comments and marks "
                     "each comment grounded only if its quote really appears in the student's "
-                    "text. Show ungrounded comments to the teacher flagged, or drop them.",
+                    "text (punctuation aside). Each comment gets a 'match': exact, punctuation, "
+                    "altered (some of the student's words changed, such as a corrected "
+                    "misspelling; 'student_words' then holds what the student really wrote), "
+                    "not_in_text or too_short. Show ungrounded comments to the teacher flagged, "
+                    "or drop them.",
      "inputSchema": {"type": "object", "properties": {
          "student_text": _TEXT,
          "reply": {"type": "string", "description": "The model's reply, as text."},
@@ -731,7 +826,8 @@ def _language_arg(args):
 
 def _checked(comments):
     return {"comments": comments, "grounded": sum(1 for c in comments if c["grounded"]),
-            "ungrounded": sum(1 for c in comments if not c["grounded"])}
+            "ungrounded": sum(1 for c in comments if not c["grounded"]),
+            "altered": sum(1 for c in comments if c.get("match") == "altered")}
 
 
 def _data_file(root, name):
@@ -992,10 +1088,19 @@ def cmd_draft(args):
         json.dump(results, f, indent=2, ensure_ascii=False)
 
 
+def _flag(comment):
+    if comment.get("grounded"):
+        return ""
+    if comment.get("match") == "altered":
+        return '  [the model changed the student\'s words; the student wrote: "%s"]' % (
+            comment.get("student_words", ""))
+    return "  [quote NOT found in the text]"
+
+
 def _ask(comment):
-    flag = "" if comment.get("grounded") else "  [quote NOT found in the text]"
     print('\n"%s"%s\n  up:      %s\n  back:    %s\n  forward: %s' % (
-        comment["quote"], flag, comment["feed_up"], comment["feed_back"], comment["feed_forward"]))
+        comment["quote"], _flag(comment), comment["feed_up"], comment["feed_back"],
+        comment["feed_forward"]))
     if comment.get("gloss"):
         print("  english: %s  (the model's translation, not checked)" % comment["gloss"])
     while True:
@@ -1015,7 +1120,7 @@ def cmd_review(args):
         d = review(c, _ask)
         log_event(args.log, "review", student=student, criterion=criterion, item=i,
                   quote=c["quote"], grounded=c.get("grounded", False),
-                  draft_number=args.draft_number, **d)
+                  draft_number=args.draft_number, **_match_field(c), **d)
 
 
 def cmd_serve(args):
@@ -1058,8 +1163,9 @@ def cmd_eval(args):
         r = evaluate(rubric, essays, lambda m, model=model: call_ollama(m, model, args.host), args.grade,
                      language=args.language)
         reports.append(dict({"model": model}, **r))
-        print("%s: usable %s, grounded %s, %s s/request" % (
-            model, r["usable_rate"], r["grounded_rate"], r["seconds_per_request"]), file=sys.stderr)
+        print("%s: usable %s, grounded %s, altered %s, %s s/request" % (
+            model, r["usable_rate"], r["grounded_rate"], r["altered_rate"],
+            r["seconds_per_request"]), file=sys.stderr)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump({"schema": SCHEMA, "version": __version__, "rubric": rubric.get("title", ""),
                    "language": args.language, "reports": reports}, f, indent=2, ensure_ascii=False)

@@ -20,6 +20,9 @@ RUBRIC = {"title": "Argument", "criteria": [
 ESSAY = ("School should start later. Teenagers   need more sleep, and tired students "
          "can't focus. In conclusion, it is good.")
 
+# A learner's sentence with misspellings, which models tend to fix when they quote it.
+ESSAY_EL = "I beleive that students shuold have more time to finish there homework at home."
+
 DRAFTS = {
     "Ana Ruiz": {"claim": [
         {"quote": "it is good", "feed_up": "u", "feed_back": "b", "feed_forward": "Say why.", "grounded": True},
@@ -191,11 +194,45 @@ class GroundingTests(unittest.TestCase):
     def test_ground(self):
         g = fc.ground([{"quote": "it is good"}, {"quote": "made up"}], ESSAY)
         self.assertEqual([x["grounded"] for x in g], [True, False])
+        self.assertEqual([x["match"] for x in g], ["exact", "not_in_text"])
 
     def test_uptake(self):
         revised = ESSAY.replace("it is good", "later start times help students learn")
         self.assertEqual(fc.revision_uptake("it is good", revised), "revised")
         self.assertEqual(fc.revision_uptake("tired students", revised), "unchanged")
+
+
+class MatchTests(unittest.TestCase):
+    def test_exact(self):
+        self.assertEqual(fc.match_quote("“tired students can’t focus.”", ESSAY), {"match": "exact"})
+
+    def test_punctuation_only(self):
+        self.assertEqual(fc.match_quote("teenagers need more sleep and tired students", ESSAY),
+                         {"match": "punctuation",
+                          "student_words": "Teenagers need more sleep, and tired students"})
+
+    def test_altered_keeps_the_students_words(self):
+        m = fc.match_quote("students should have more time to finish their homework", ESSAY_EL)
+        self.assertEqual(m, {"match": "altered",
+                             "student_words": "students shuold have more time to finish there homework"})
+
+    def test_not_in_text_and_too_short(self):
+        self.assertEqual(fc.match_quote("studies show sleep improves grades", ESSAY), {"match": "not_in_text"})
+        self.assertEqual(fc.match_quote("!!!", ESSAY), {"match": "not_in_text"})
+        self.assertEqual(fc.match_quote("is", ESSAY), {"match": "too_short"})
+        self.assertEqual(fc.match_quote("", ESSAY), {"match": "too_short"})
+
+    def test_quote_longer_than_the_text(self):
+        self.assertEqual(fc.match_quote("one two three four five six seven", "One two three four."),
+                         {"match": "altered", "student_words": "One two three four"})
+
+    def test_ground_counts_punctuation_only_as_grounded(self):
+        g = fc.ground([{"quote": "teenagers need more sleep and tired students"},
+                       {"quote": "students should have more time to finish their homework"}], ESSAY)
+        self.assertEqual([(x["grounded"], x["match"]) for x in g],
+                         [(True, "punctuation"), (False, "not_in_text")])
+        a = fc.ground([{"quote": "students should have more time to finish their homework"}], ESSAY_EL)[0]
+        self.assertEqual((a["grounded"], a["match"]), (False, "altered"))
 
 
 class EvalTests(unittest.TestCase):
@@ -219,14 +256,25 @@ class EvalTests(unittest.TestCase):
         r = fc.evaluate(RUBRIC, {"b": ESSAY, "a": ESSAY}, ask, grade="8", clock=lambda: next(ticks))
         self.assertEqual(r, {"essays": 2, "requests": 4, "unusable_replies": 1, "usable_rate": 0.75,
                              "comments": 3, "grounded_comments": 2, "grounded_rate": 0.667,
-                             "seconds_per_request": 2.0})
+                             "matches": {"exact": 2, "punctuation": 0, "altered": 0,
+                                         "not_in_text": 1, "too_short": 0},
+                             "altered_rate": 0.0, "seconds_per_request": 2.0})
         self.assertIn("Grade level: 8", seen[0][1]["content"])
+
+    def test_counts_altered(self):
+        r = fc.evaluate({"criteria": [RUBRIC["criteria"][0]]}, {"a": ESSAY_EL},
+                        lambda m: self.reply("students should have more time to finish their homework",
+                                             "I beleive that"))
+        self.assertEqual(r["matches"], {"exact": 1, "punctuation": 0, "altered": 1,
+                                        "not_in_text": 0, "too_short": 0})
+        self.assertEqual((r["grounded_comments"], r["altered_rate"]), (1, 0.5))
 
     def test_empty(self):
         r = fc.evaluate(RUBRIC, {}, lambda m: self.fail("no call expected"))
         self.assertEqual(r["requests"], 0)
         self.assertIsNone(r["usable_rate"])
         self.assertIsNone(r["grounded_rate"])
+        self.assertIsNone(r["altered_rate"])
         self.assertIsNone(r["seconds_per_request"])
 
     def test_language(self):
@@ -299,6 +347,13 @@ class DecideTests(unittest.TestCase):
         d = fc.decide(DRAFTS, self.form(action="edit", text="  Give one reason.  "), "t0k")
         self.assertEqual((d["action"], d["final"]), ("edit", "Give one reason."))
 
+    def test_match_is_logged(self):
+        drafts = {"Cy Lee": {"claim": [{"quote": "q q q", "feed_forward": "f", "grounded": False,
+                                        "match": "altered", "student_words": "q q x"}]}}
+        d = fc.decide(drafts, self.form(student="Cy Lee"), "t0k")
+        self.assertEqual((d["match"], d["grounded"], d["final"]), ("altered", False, "f"))
+        self.assertNotIn("student_words", d)
+
     def test_rejects_bad_input(self):
         for bad in (self.form(token="nope"), self.form(token="ünï"), self.form(item="5"),
                     self.form(item="-1"), self.form(item="x"), self.form(student="Zoe"),
@@ -330,6 +385,13 @@ class RenderTests(unittest.TestCase):
         self.assertIn(">Explica por qué.</textarea>", page)
         self.assertNotIn("In English", fc.render_review(fc.pending(DRAFTS, []), 3, "t0k"))
 
+    def test_altered_quote_shows_the_students_words(self):
+        c = {"quote": "finish their homework", "feed_up": "u", "feed_back": "b", "feed_forward": "f",
+             "grounded": False, "match": "altered", "student_words": "finish there <homework>"}
+        page = fc.render_review([("Ana Ruiz", "claim", 0, c)], 1, "t0k")
+        self.assertIn("The student wrote: &ldquo;finish there &lt;homework&gt;&rdquo;", page)
+        self.assertNotIn("NOT found", page)
+
 
 class UptakeTests(unittest.TestCase):
     EVENTS = [review_event("Ana Ruiz", "claim", 0, "accept"),
@@ -345,6 +407,15 @@ class UptakeTests(unittest.TestCase):
     def test_missing_revision_skipped(self):
         u = fc.uptake_events(DRAFTS, self.EVENTS, {"Ben Ode": ESSAY})
         self.assertEqual([x["student"] for x in u], ["Ben Ode"])
+
+    def test_altered_quote_uses_the_students_words(self):
+        drafts = {"Cy Lee": {"claim": [
+            {"quote": "students should have more time", "student_words": "students shuold have more time",
+             "feed_forward": "Check spelling.", "grounded": False, "match": "altered"}]}}
+        events = [review_event("Cy Lee", "claim", 0, "accept")]
+        same = fc.uptake_events(drafts, events, {"Cy Lee": ESSAY_EL})
+        fixed = fc.uptake_events(drafts, events, {"Cy Lee": ESSAY_EL.replace("shuold", "should")})
+        self.assertEqual((same[0]["uptake"], fixed[0]["uptake"]), ("unchanged", "revised"))
 
     def test_cli(self):
         with tempfile.TemporaryDirectory() as d:
@@ -540,7 +611,8 @@ class ExportTests(unittest.TestCase):
     EVENTS = [
         {"schema": fc.SCHEMA, "ts": "2026-10-13T00:00:00Z", "kind": "review", "student": "Ana Ruiz",
          "criterion": "claim", "action": "edit", "quote": "Ana thinks school is long",
-         "draft": "Ana, add a reason.", "final": "Add one reason.", "grounded": True, "draft_number": 1},
+         "draft": "Ana, add a reason.", "final": "Add one reason.", "grounded": True, "match": "exact",
+         "draft_number": 1},
         {"schema": fc.SCHEMA, "ts": "2026-10-13T00:00:01Z", "kind": "review", "student": "Ben Ode",
          "criterion": "claim", "action": "accept", "quote": "x", "draft": "y", "final": "y"},
     ]
@@ -554,6 +626,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(r["draft"], "[STUDENT], add a reason.")
         self.assertEqual(r["action"], "edit")
         self.assertIs(r["grounded"], True)
+        self.assertEqual(r["match"], "exact")
         self.assertEqual(r["draft_number"], 1)
         self.assertNotIn("Ana", json.dumps(recs))
 
@@ -670,6 +743,14 @@ class McpTests(unittest.TestCase):
         r2 = self.call("check_feedback", student_text=ESSAY,
                        comments=[{"quote": "tired students", "feed_forward": "Cite."}])
         self.assertEqual(r2["structuredContent"]["grounded"], 1)
+
+    def test_check_feedback_altered(self):
+        r = self.call("check_feedback", student_text=ESSAY_EL, comments=[
+            {"quote": "students should have more time to finish their homework",
+             "feed_forward": "Check your spelling."}])["structuredContent"]
+        self.assertEqual((r["grounded"], r["ungrounded"], r["altered"]), (0, 1, 1))
+        self.assertEqual(r["comments"][0]["student_words"],
+                         "students shuold have more time to finish there homework")
 
     def test_tool_errors_are_results(self):
         r = self.call("check_feedback", student_text=ESSAY, reply="Sure! Here it is.")

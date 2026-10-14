@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "feedback-commons"
-version = "0.5.0"
+version = "0.6.0"
 description = "Local-first, teacher-approved writing feedback: a small open model on the school's own computer drafts quote-grounded comments, and the teacher decides."
 readme = "README.md"
 license = {text = "Apache-2.0"}
