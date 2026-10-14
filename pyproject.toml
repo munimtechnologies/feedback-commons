@@ -7,13 +7,13 @@ name = "feedback-commons"
 version = "0.5.0"
 description = "Local-first, teacher-approved writing feedback: a small open model on the school's own computer drafts quote-grounded comments, and the teacher decides."
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 requires-python = ">=3.8"
 authors = [{name = "MV2 of Munim, Inc.", email = "munimversion2@gmail.com"}]
 keywords = ["education", "feedback", "writing", "teachers", "ollama", "mcp"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Intended Audience :: Education",
     "Topic :: Education",

@@ -175,4 +175,4 @@ The tests run offline and don't need Ollama.
 - A first real classroom trial, with a teacher who tells us what to fix.
 
 ## About
-Feedback Commons was made by MV2 of Munim, Inc. The code and docs were written with AI agents working in MV2's name. MIT license.
+Feedback Commons was made by MV2 of Munim, Inc. The code and docs were written with AI agents working in MV2's name. Apache-2.0 license.
