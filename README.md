@@ -2,7 +2,7 @@
 
 Feedback Commons is a local-first writing-feedback assistant for teachers. It runs on your own computer, so student work never leaves your device.
 
-- **Feedback tied to the text.** It drafts rubric-aligned feedback with a small open model running on your computer through [Ollama](https://ollama.com). Every comment has to quote the student's own words. If the quote isn't actually in the text, the comment is flagged. If the model changed some of the student's words while quoting them (small models often quietly fix a misspelling), you see what the student really wrote.
+- **Feedback tied to the text.** It drafts rubric-aligned feedback with a small open model running on your computer through [Ollama](https://ollama.com). Every comment has to quote the student's own words. If the quote isn't actually in the text, the comment is flagged. If the model changed some of the student's words while quoting them (for example by quietly fixing a misspelling, which our study found is rare but real), you see what the student really wrote.
 - **The teacher decides.** You accept, edit or reject each comment, in the terminal or on a simple web page that only your computer can open. Nothing reaches a student without your approval.
 - **In the student's language.** Comments can be written in Spanish, Vietnamese, Somali or any language your model handles, for the whole class or student by student. Each one comes with an English gloss so you can still judge it before you approve it.
 - **Your rubric, from a spreadsheet.** Save your rubric as CSV, one row per criterion and one column per level, and use it as-is.
@@ -166,6 +166,8 @@ Check that your computer can run a local model with [local-ai-checkup](https://g
 
 ## Research
 [`research/`](research/) holds a preregistered study of how faithfully small local models quote English learners' essays: how often the quote is exact, and how often the model quietly changes the student's words, by Conventions score and feedback language. The `altered` label above comes from that study's classifier.
+
+**Results (2026-10-14):** on 22 essays from the ELLIPSE corpus, llama3.2:3b and qwen2.5:3b kept the student's words in 97% of 337 quotes (96% exact, 1% differing only in punctuation), misspellings included. About 2% of quotes changed the student's words toward standard English, for example by fixing a misspelling. Essays with weaker conventions got slightly fewer exact quotes in all four model × language cells, but no difference was clear by the preregistered test. Details, intervals and limits are in [`research/README.md`](research/README.md).
 
 ## Tests
 ```
