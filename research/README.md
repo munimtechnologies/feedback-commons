@@ -411,3 +411,93 @@ exists.
 
 *Made by AI agents working in MV2's name (MV2 of Munim, Inc.). ELLIPSE corpus: Crossley et al.,
 CC BY-NC-SA 4.0; only aggregates are published here. Text: CC BY 4.0.*
+
+---
+
+## Preregistration: quote-fidelity-v3 (powered replication), registered 2026-10-16 before any v3 data were generated
+
+**Why a v3.** v2 (22 essays, 337 quotes) found no clear gap in exact-quote rate between the low and
+high Conventions bands; its point estimates (6.1% vs 2.3% non-exact) were too imprecise to rule a
+gap in or out. v3 asks the same question with about four times the essays, one pooled primary test
+instead of four per-cell tests, and an essay sample that does not overlap v2's.
+
+**Question.** When small local models write rubric feedback that quotes an English learner's essay,
+are quotes from essays with weaker writing conventions reproduced verbatim less often than quotes
+from essays with stronger conventions?
+
+**Data.** ELLIPSE training file (Crossley et al., 2023; github.com/scrosseye/ELLIPSE-Corpus,
+CC BY-NC-SA 4.0), fetched at run time, never redistributed. Only aggregates are published; no essay
+text, quote, or before/after pair is published. The runs check that the file's SHA-256 matches the
+one in `research/v3/essays.json`, and stop if it does not.
+
+**Bands and eligibility (unchanged from v2).** Low band: human Conventions score <= 2.5. High band:
+>= 4.0. Essays of 150-450 words only. **Excluded: all 30 essays v2 selected** (regenerated with v2's
+own `select_essays`, 15 per band, seed 2026, and checked against the 22 essays v2 finished),
+whether or not v2 finished them.
+
+**Sample.** From the remaining eligible essays, `select_essays` with 48 per band and seed 2027
+(sorted by `text_id_kaggle`, then `random.Random(2027).sample`, alternating bands in processing
+order as v2 did). If a band has fewer than 48 eligible essays, all of them are taken; essays.json
+says so. The list, made by `research/v3_select.py`, is `research/v3/essays.json`, committed with
+this section. The selection job (`v3-select-v1`, 2026-10-16; its 8 offline tests passed) read
+3,911 rows, regenerated v2's selection exactly, and found 799 low-band and 299 high-band eligible
+essays after the exclusion, so neither band is short: 48 were taken from each. It wrote essay IDs
+and bands only; no feedback had been generated.
+
+**Models, languages, settings.** `llama3.2:3b` and `qwen2.5:3b` through Ollama on CPU
+(OLLAMA_CONTEXT_LENGTH=4096; model digests and Ollama version recorded with the results); feedback
+in English and in Spanish; criteria `evidence` and `conventions`; temperature 0.2, JSON output,
+300 s timeout, **request seed 1** (new: v2 set none); one request per essay x criterion x cell, no
+reruns except as stated under "Failures". Prompt: `build_messages` of Feedback Commons 0.5.0, the
+version v2 ran. Code: `research/v3_run.py run`, one job per cell.
+
+**Runs.** Four jobs, one per model x language cell, each at most 330 minutes on 4 CPU, with 290
+minutes for requests; essays are processed in essays.json order and taken whole. Each job fetches
+this folder's code and `v3/essays.json` from the commit on main when it starts, refuses to run
+unless that commit's README contains this section, and records the commit's SHA with its results.
+**Analysis set: essays completed in all four cells.** An essay is completed in a cell when every
+one of its requests in that cell returned usable JSON; a usable reply with no quoted comment still
+counts. Essays dropped from the analysis set are counted by band and reason (never reached by a
+time-limited job; a failed request or unusable reply).
+
+**Quote classes (unchanged).** Exact / punctuation-only / altered / not in text / too short, as
+defined by `classify_quote` in `research/quote_fidelity.py`.
+
+**Primary outcome and test (one test).** Exact-quote rate, low band minus high band, pooled over all
+four cells, with every quote of an essay kept together: `bootstrap_diff` on per-essay (exact, total)
+counts summed over the four cells, in essays.json order, 2,000 resamples of whole essays within
+each band (seed 7), 95% percentile interval. Expected direction: negative. The gap is "clear" only
+if the whole interval is below zero. If the analysis set has fewer than 30 essays in either band,
+the primary test is reported as underpowered and the result as descriptive only. Code:
+`research/v3_run.py analyze`.
+
+**What v3 can and cannot detect (stated in advance).** With ~15 quotes per essay and an assumed
+intra-essay correlation of 0.05 (an assumption, not estimated), 48 essays per band gives about 80%
+power for a gap the size of v2's point estimate (3.8 points). A gap half that size would need about
+four times as many essays; a null v3 does not rule it out.
+
+**Secondary outcomes (descriptive, no tests), all on the analysis set.**
+1. The same gap for each of the four cells, with the same bootstrap.
+2. Edit types in altered quotes, by band, from `research/edit_types.py` as published: spelling,
+   apostrophe, join, split, inflection, real_word, inserted, dropped, other (an altered quote can
+   have several). Reported as counts of edits and of quotes with each type.
+3. Exact-quote rate by band within quote-length tertiles. Length is the number of words
+   (`bare_words`); with the n pooled v3 quotes sorted by length, the cut points are the lengths at
+   positions ceil(n/3) and ceil(2n/3); short is <= the first, middle <= the second, long above it
+   (ties can make the thirds unequal).
+4. Kept-rate of misspelled words inside quotes, by band, with `research/error_conditioned.py` as in
+   the v2 exploratory analysis, per cell and pooled over the cells.
+
+**Failures.** Failed requests (HTTP or server errors, timeouts) and unusable replies (not JSON, or no
+comments list) are counted separately by cell and are not retried. Usable replies with no quoted
+comment are counted as "no quote", not as failures.
+
+**Nothing else is a confirmatory result.** Any other cut of the data is labelled post hoc.
+
+**Files.** `v3_select.py` (selection) and `v3_run.py` (one cell, and the analysis), with offline
+tests in `test_v3_select.py` and `test_v3_run.py` (18 tests, passed on the shared runner on
+2026-10-16 in job `v3-run-tests-v1`, against this folder's code and Feedback Commons 0.5.0).
+
+**Known limits.** Two 3B models, CPU, one prompt, one temperature, one corpus (grades 8-12 English
+learners); human Conventions scores are a proxy for error density; a pooled test assumes the gap has
+the same sign across cells. Written with AI agents working in MV2's name.

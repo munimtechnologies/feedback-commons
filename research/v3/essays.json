@@ -1,0 +1,437 @@
+{
+  "study": "quote-fidelity-v3",
+  "rule": "ELLIPSE training essays of 150-450 words; low band Conventions <= 2.5, high band >= 4.0; all 30 essays v2 selected (select_essays, 15 per band, seed 2026) excluded; 48 per band drawn with select_essays and seed 2027, alternating low/high.",
+  "data": "https://raw.githubusercontent.com/scrosseye/ELLIPSE-Corpus/main/ELLIPSE_Final_github_train.csv",
+  "data_sha256": "782344e99668a3ff508d7410c0eb6e36da70f3b28f81c96e367f1ca04924b06c",
+  "data_rows": 3911,
+  "data_license": "CC BY-NC-SA 4.0 (Crossley et al., ELLIPSE corpus); IDs and bands only",
+  "v2_excluded": [
+    "2ACDFF7FCAAA",
+    "D2421A895FFA",
+    "7B557B2F27CE",
+    "F610B3CBF3DF",
+    "BB5B58E098AB",
+    "C2DCF6EED519",
+    "C01AC1CDDD65",
+    "70E490A83717",
+    "E2E3D86A8CF8",
+    "02B36EBD5C66",
+    "2379CD1725FE",
+    "29BB45AA907C",
+    "550D53DE2832",
+    "374CF6E834A5",
+    "D9FB5E411A4F",
+    "85D3E5A1D64E",
+    "DE8162CAC353",
+    "33DEFCDAD05F",
+    "CD506B5747F7",
+    "C6DDD966C9FC",
+    "9EB7D09C785B",
+    "09ADB0629CD0",
+    "FEA2C3FB45D1",
+    "89ADE1CC1BEC",
+    "D22D2878F4C7",
+    "6269A525D482",
+    "CA347336D930",
+    "AC3111702C95",
+    "F44D5A636C2F",
+    "74FF4379012C"
+  ],
+  "v2_regenerated": true,
+  "eligible_after_exclusion": {
+    "low": 799,
+    "high": 299
+  },
+  "selected": {
+    "low": 48,
+    "high": 48
+  },
+  "short_bands": [],
+  "essays": [
+    {
+      "id": "2675A97C2B76",
+      "band": "low"
+    },
+    {
+      "id": "2082C42A8F43",
+      "band": "high"
+    },
+    {
+      "id": "ACA08DBF39EE",
+      "band": "low"
+    },
+    {
+      "id": "9523FBA791BE",
+      "band": "high"
+    },
+    {
+      "id": "1BE17E2DA549",
+      "band": "low"
+    },
+    {
+      "id": "D6407F1D3515",
+      "band": "high"
+    },
+    {
+      "id": "04B3A4DD9460",
+      "band": "low"
+    },
+    {
+      "id": "7E5F489C8CE4",
+      "band": "high"
+    },
+    {
+      "id": "E7A370A15B49",
+      "band": "low"
+    },
+    {
+      "id": "E926BE6F104E",
+      "band": "high"
+    },
+    {
+      "id": "7DC02C918305",
+      "band": "low"
+    },
+    {
+      "id": "35E552843ADF",
+      "band": "high"
+    },
+    {
+      "id": "9B15B90564A3",
+      "band": "low"
+    },
+    {
+      "id": "8773AAFA4355",
+      "band": "high"
+    },
+    {
+      "id": "E0BFF1488787",
+      "band": "low"
+    },
+    {
+      "id": "C0C29B07C7C0",
+      "band": "high"
+    },
+    {
+      "id": "4585DE769AE9",
+      "band": "low"
+    },
+    {
+      "id": "AF4A2E8AD2A5",
+      "band": "high"
+    },
+    {
+      "id": "985A32A20F03",
+      "band": "low"
+    },
+    {
+      "id": "F89738650EDF",
+      "band": "high"
+    },
+    {
+      "id": "442CFAE61CC3",
+      "band": "low"
+    },
+    {
+      "id": "31D67F9A82BA",
+      "band": "high"
+    },
+    {
+      "id": "862ACD748291",
+      "band": "low"
+    },
+    {
+      "id": "5661280443",
+      "band": "high"
+    },
+    {
+      "id": "DA92389BB8F0",
+      "band": "low"
+    },
+    {
+      "id": "85F4C57672EA",
+      "band": "high"
+    },
+    {
+      "id": "4288F88C8D15",
+      "band": "low"
+    },
+    {
+      "id": "25BFEA75C65A",
+      "band": "high"
+    },
+    {
+      "id": "6B56C630FFC5",
+      "band": "low"
+    },
+    {
+      "id": "2A9FC8634742",
+      "band": "high"
+    },
+    {
+      "id": "73038C17880E",
+      "band": "low"
+    },
+    {
+      "id": "F72B0C4DB804",
+      "band": "high"
+    },
+    {
+      "id": "ED4CAEB0D7A3",
+      "band": "low"
+    },
+    {
+      "id": "DEDD5C568B4C",
+      "band": "high"
+    },
+    {
+      "id": "DE06A0AF7DEC",
+      "band": "low"
+    },
+    {
+      "id": "C3F3118898B5",
+      "band": "high"
+    },
+    {
+      "id": "1A17F32415FD",
+      "band": "low"
+    },
+    {
+      "id": "2299FA736E92",
+      "band": "high"
+    },
+    {
+      "id": "E45C9BFE63FA",
+      "band": "low"
+    },
+    {
+      "id": "DACE7A4DE7DB",
+      "band": "high"
+    },
+    {
+      "id": "E877D5AD16DA",
+      "band": "low"
+    },
+    {
+      "id": "71131D46F019",
+      "band": "high"
+    },
+    {
+      "id": "84CE7281265F",
+      "band": "low"
+    },
+    {
+      "id": "6CE97E45BF79",
+      "band": "high"
+    },
+    {
+      "id": "772D27D400BB",
+      "band": "low"
+    },
+    {
+      "id": "168958FC7315",
+      "band": "high"
+    },
+    {
+      "id": "14ED79D68BC4",
+      "band": "low"
+    },
+    {
+      "id": "3CDCFB2C7F25",
+      "band": "high"
+    },
+    {
+      "id": "62F7911DE51F",
+      "band": "low"
+    },
+    {
+      "id": "8C83ACEF2A15",
+      "band": "high"
+    },
+    {
+      "id": "FAF6B6E4DFF4",
+      "band": "low"
+    },
+    {
+      "id": "E07F7A913FB6",
+      "band": "high"
+    },
+    {
+      "id": "E78C1D3328E3",
+      "band": "low"
+    },
+    {
+      "id": "33AF50FB5ED9",
+      "band": "high"
+    },
+    {
+      "id": "63AB7F39EBC6",
+      "band": "low"
+    },
+    {
+      "id": "EEEF07B3D146",
+      "band": "high"
+    },
+    {
+      "id": "A0B58CDB939A",
+      "band": "low"
+    },
+    {
+      "id": "120FE0B76D5C",
+      "band": "high"
+    },
+    {
+      "id": "C045A27AFE82",
+      "band": "low"
+    },
+    {
+      "id": "3DE204C5895E",
+      "band": "high"
+    },
+    {
+      "id": "5AAD796F4D6B",
+      "band": "low"
+    },
+    {
+      "id": "4248882EDCCC",
+      "band": "high"
+    },
+    {
+      "id": "3D72844EC5B0",
+      "band": "low"
+    },
+    {
+      "id": "983D4402B74F",
+      "band": "high"
+    },
+    {
+      "id": "F7DD6134C693",
+      "band": "low"
+    },
+    {
+      "id": "CEE6F38D4ED6",
+      "band": "high"
+    },
+    {
+      "id": "83B3CD03C693",
+      "band": "low"
+    },
+    {
+      "id": "0BF56A2681D3",
+      "band": "high"
+    },
+    {
+      "id": "85C71A1E0117",
+      "band": "low"
+    },
+    {
+      "id": "05F54CEC774B",
+      "band": "high"
+    },
+    {
+      "id": "5355F44A1FE4",
+      "band": "low"
+    },
+    {
+      "id": "9801CF414927",
+      "band": "high"
+    },
+    {
+      "id": "98318D414246",
+      "band": "low"
+    },
+    {
+      "id": "A91103F63B19",
+      "band": "high"
+    },
+    {
+      "id": "A9DA6C8A9555",
+      "band": "low"
+    },
+    {
+      "id": "E20DE200FEA8",
+      "band": "high"
+    },
+    {
+      "id": "90E5BB6CBE11",
+      "band": "low"
+    },
+    {
+      "id": "88860671767F",
+      "band": "high"
+    },
+    {
+      "id": "3F4A9ACFEDFB",
+      "band": "low"
+    },
+    {
+      "id": "DED3BCBE5049",
+      "band": "high"
+    },
+    {
+      "id": "AD72A536B54A",
+      "band": "low"
+    },
+    {
+      "id": "AEDDD593BF0F",
+      "band": "high"
+    },
+    {
+      "id": "8EEA38B2E6CD",
+      "band": "low"
+    },
+    {
+      "id": "D8D90E042134",
+      "band": "high"
+    },
+    {
+      "id": "F869B38F3A89",
+      "band": "low"
+    },
+    {
+      "id": "D1D770AF6855",
+      "band": "high"
+    },
+    {
+      "id": "7B00EEFA1313",
+      "band": "low"
+    },
+    {
+      "id": "68256AC96C72",
+      "band": "high"
+    },
+    {
+      "id": "DEC50B420484",
+      "band": "low"
+    },
+    {
+      "id": "ACA1A45EE438",
+      "band": "high"
+    },
+    {
+      "id": "2E043F67934C",
+      "band": "low"
+    },
+    {
+      "id": "59E62F702421",
+      "band": "high"
+    },
+    {
+      "id": "FED42BB10805",
+      "band": "low"
+    },
+    {
+      "id": "D68907DB12ED",
+      "band": "high"
+    },
+    {
+      "id": "47DD29AF666C",
+      "band": "low"
+    },
+    {
+      "id": "84192B65683A",
+      "band": "high"
+    }
+  ],
+  "made": "2026-10-16T15:42:35Z"
+}
