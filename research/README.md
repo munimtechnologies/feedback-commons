@@ -290,3 +290,124 @@ above.
 runner. Since only 10 of 337 quotes were not verbatim, a split by misspelled passage will be
 thin. Its most useful number is likely the share of misspelled words the quotes kept.
 Its numbers will be added here, labelled exploratory.
+
+### Exploratory results (added 2026-10-15)
+
+**Exploratory, not preregistered.** The analysis declared above ran on 2026-10-15 (job
+`error-conditioned-v1`, 11:21 to 11:24 UTC). Its offline tests passed. A copy check
+re-derived every quote's classification from the study's raw records and found 0
+mismatches in 337 quotes. 335 quotes were placed in the essay; the other 2 (not in text, too
+short) have no passage. The full tables are in `results/error-conditioned-summary.md` and
+`.json`.
+
+**Misspelled words inside quotes were almost always kept.** The quotes contained 172
+occurrences of words the spell checker does not know (the same essay word can be counted
+once per quote that contains it). 167 of them (97.1%) were kept exactly as the student wrote
+them:
+
+| Model | Feedback language | Misspelled words kept |
+|---|---|---|
+| llama3.2:3b | English | 46 of 47 (98%) |
+| llama3.2:3b | Spanish | 28 of 29 (97%) |
+| qwen2.5:3b | English | 33 of 36 (92%) |
+| qwen2.5:3b | Spanish | 60 of 60 (100%) |
+
+**Misspelled versus clean passages.** For each model and language, the verbatim rate of
+quotes from misspelled passages minus that of quotes from clean passages, with 95% essay
+bootstrap intervals (2,000 resamples):
+
+| Model | Feedback language | Misspelled minus clean |
+|---|---|---|
+| llama3.2:3b | English | -0.020 [-0.152, +0.066] |
+| llama3.2:3b | Spanish | -0.104 [-0.272, +0.027] |
+| qwen2.5:3b | English | -0.034 [-0.167, +0.048] |
+| qwen2.5:3b | Spanish | 0.000 (every quote verbatim) |
+
+No interval excludes zero.
+
+**Split by band** (pooled over models and languages; our hand sums of the published cells,
+with no interval computed):
+
+| Band | Passage | Quotes | Verbatim |
+|---|---|---|---|
+| Low | misspelled | 59 | 57 (96.6%) |
+| Low | clean | 104 | 100 (96.2%) |
+| High | misspelled | 22 | 20 (90.9%) |
+| High | clean | 150 | 150 (100%) |
+
+On average, 2.8% of the words in a low-band essay were unknown to the spell checker, against
+0.8% in a high-band essay.
+
+**Reading, by the rule declared above.** The declaration said: if the band gap disappears once
+passages are split, it is mostly "more misspellings to fix"; if a gap remains among clean
+passages, something else is going on. Here the gap remains among clean passages: 4 of the 6
+altered low-band quotes came from passages in which the spell checker found nothing to
+correct, while in the high band the only 2 altered quotes came from misspelled passages. This
+fits the post hoc reading above, where the low-band changes included joining two words the
+student wrote apart, a change to a word's grammatical form and changed first words, none of which a
+spell checker can see. It is 8 altered quotes in all, so this is a description of this
+sample, not evidence of a difference between bands.
+
+**What it changes.** For a tool, the lesson is practical: a check that compares a quote with
+the student's own words catches these changes; a check that looks for corrected misspellings
+would have missed 4 of the 6 on low-band essays. A larger follow-up study should count joins,
+real-word changes and edits at the edges of a quote separately, as `edit_types.py` now does.
+
+#### Edit types in the altered quotes (added 2026-10-15)
+
+**Exploratory, not preregistered; 8 quotes, so this describes the sample only.** Job
+`edit-types-v1` (finished 20:12 UTC on 2026-10-15; offline tests passed) placed each of the 8
+altered quotes back in its essay and compared them word by word with `edit_types.py`. It first
+recomputed every recorded similarity score: 8 rechecked, 0 mismatches. Every altered quote had
+at least one edit the classifier could name. Aggregates are in `results/edit-types-summary.md`
+and `.json` (no essay text).
+
+| Edit type | Low band | High band | All | At an end of the quote |
+|---|---|---|---|---|
+| Spelling corrected | 3 (1 quote) | 2 (2 quotes) | 5 | 0 |
+| Word form changed (inflection) | 2 (1 quote) | 0 | 2 | 0 |
+| Two words joined | 2 (2 quotes) | 0 | 2 | 2 |
+| Word inserted | 3 (3 quotes, all function words) | 0 | 3 | 3 |
+| Word swapped for a different word | 0 | 0 | 0 | - |
+| Word dropped | 0 | 0 | 0 | - |
+| Words split, apostrophe, other | 0 | 0 | 0 | - |
+| **Total** | **10 (6 quotes)** | **2 (2 quotes)** | **12** | **5** |
+
+Altered quotes were longer in the low band (mean 31.3 words, 6 quotes) than in the high band
+(13.0 words, 2 quotes).
+
+**What this does and does not show.** No altered quote had a word swapped for a different
+word or a word dropped, so in this sample no change altered what the student meant. But the
+changes are not neutral either. Most of them quietly *correct* the student: a misspelling
+fixed, a word put into a different grammatical form, two words the student wrote apart run
+together. A teacher reading that feedback sees a cleaner sentence than the one the student
+wrote, which matters most when the feedback is about conventions, and 10 of the 12 edits were
+in low-conventions essays. The other kind, a function word added at the start or end, looks like
+the model smoothing the edge of the quote into its own sentence. With 8 quotes we can't say
+whether these rates differ between bands; a larger study should count each type separately, as
+`edit_types.py` does.
+
+**For a tool:** a check that compares each quote with the student's exact words, as
+`feedback_commons.py` does, catches all five kinds. A check that only looks for corrected
+misspellings would have caught 5 of these 12 edits.
+
+#### Closest prior work (added 2026-10-15)
+
+The closest published measurement we found is **Jia et al. (2024), "On Assessing the
+Faithfulness of LLM-generated Feedback on Student Assignments" (EDM 2024)**. It measures whether
+the *content* of feedback is supported by the student's work (sentence-level, intrinsic and
+extrinsic hallucination). It does not measure whether a model reproduces the student's own
+words *verbatim* when it quotes them, and it does not split results by the writer's
+conventions level. **Mah et al. (2025), "LLM and Teacher Feedback on Student Writing"**, is a
+secondary neighbour: it asks the model for an exact excerpt from the essay but codes the
+feedback's stance rather than checking the excerpt, and its "verbatim" is a feedback category
+(a suggested replacement sentence), not a fidelity measure. An automated text search of Mah et
+al. (job `prior-art-grep-v1`, 2026-10-15) confirmed both points. SEFORA (Peyghambari Oskoui et
+al., 2026, arXiv 2607.00274, §A.3) notes informally that LLM-based re-paragraphing of student
+essays added or dropped tokens, which led the authors to a deterministic parser; it reports no
+rate and does not check quotations in feedback. We found no published measurement of verbatim
+quote fidelity split by conventions band; that absence is from our search, not proof that none
+exists.
+
+*Made by AI agents working in MV2's name (MV2 of Munim, Inc.). ELLIPSE corpus: Crossley et al.,
+CC BY-NC-SA 4.0; only aggregates are published here. Text: CC BY 4.0.*

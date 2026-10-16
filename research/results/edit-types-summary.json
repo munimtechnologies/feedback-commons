@@ -1,0 +1,278 @@
+{
+  "quotes": 8,
+  "altered": 8,
+  "placed": 8,
+  "similarity_rechecked": 8,
+  "similarity_mismatches": 0,
+  "bands": [
+    {
+      "band": "low",
+      "altered": 6,
+      "placed": 6,
+      "no_edits": 0,
+      "edits": 10
+    },
+    {
+      "band": "high",
+      "altered": 2,
+      "placed": 2,
+      "no_edits": 0,
+      "edits": 2
+    },
+    {
+      "band": "all",
+      "altered": 8,
+      "placed": 8,
+      "no_edits": 0,
+      "edits": 12
+    }
+  ],
+  "types": [
+    {
+      "band": "low",
+      "type": "spelling",
+      "edits": 3,
+      "quotes": 1,
+      "words": 3,
+      "at_edge": 0
+    },
+    {
+      "band": "low",
+      "type": "apostrophe",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "low",
+      "type": "join",
+      "edits": 2,
+      "quotes": 2,
+      "words": 2,
+      "at_edge": 2
+    },
+    {
+      "band": "low",
+      "type": "split",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "low",
+      "type": "inflection",
+      "edits": 2,
+      "quotes": 1,
+      "words": 2,
+      "at_edge": 0
+    },
+    {
+      "band": "low",
+      "type": "real_word",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "low",
+      "type": "inserted",
+      "edits": 3,
+      "quotes": 3,
+      "words": 3,
+      "at_edge": 3,
+      "function_words": 3
+    },
+    {
+      "band": "low",
+      "type": "dropped",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0,
+      "function_words": 0
+    },
+    {
+      "band": "low",
+      "type": "other",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "high",
+      "type": "spelling",
+      "edits": 2,
+      "quotes": 2,
+      "words": 2,
+      "at_edge": 0
+    },
+    {
+      "band": "high",
+      "type": "apostrophe",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "high",
+      "type": "join",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "high",
+      "type": "split",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "high",
+      "type": "inflection",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "high",
+      "type": "real_word",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "high",
+      "type": "inserted",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0,
+      "function_words": 0
+    },
+    {
+      "band": "high",
+      "type": "dropped",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0,
+      "function_words": 0
+    },
+    {
+      "band": "high",
+      "type": "other",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "all",
+      "type": "spelling",
+      "edits": 5,
+      "quotes": 3,
+      "words": 5,
+      "at_edge": 0
+    },
+    {
+      "band": "all",
+      "type": "apostrophe",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "all",
+      "type": "join",
+      "edits": 2,
+      "quotes": 2,
+      "words": 2,
+      "at_edge": 2
+    },
+    {
+      "band": "all",
+      "type": "split",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "all",
+      "type": "inflection",
+      "edits": 2,
+      "quotes": 1,
+      "words": 2,
+      "at_edge": 0
+    },
+    {
+      "band": "all",
+      "type": "real_word",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    },
+    {
+      "band": "all",
+      "type": "inserted",
+      "edits": 3,
+      "quotes": 3,
+      "words": 3,
+      "at_edge": 3,
+      "function_words": 3
+    },
+    {
+      "band": "all",
+      "type": "dropped",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0,
+      "function_words": 0
+    },
+    {
+      "band": "all",
+      "type": "other",
+      "edits": 0,
+      "quotes": 0,
+      "words": 0,
+      "at_edge": 0
+    }
+  ],
+  "lengths": [
+    {
+      "band": "high",
+      "kind": "altered",
+      "quotes": 2,
+      "mean_words": 13.0
+    },
+    {
+      "band": "low",
+      "kind": "altered",
+      "quotes": 6,
+      "mean_words": 31.3
+    }
+  ],
+  "meta": {
+    "requests": 8,
+    "per_band": 15,
+    "seed": 2026,
+    "spell_checker": true,
+    "margin": 2,
+    "close": 0.6,
+    "data_license": "CC BY-NC-SA 4.0 (Crossley et al., ELLIPSE corpus)",
+    "finished": "2026-10-15T20:12:47Z"
+  }
+}

@@ -1,0 +1,389 @@
+{
+  "quotes": 337,
+  "placed": 335,
+  "cells": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "low",
+      "passage": "misspelled",
+      "quotes": 15,
+      "verbatim": 15,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "low",
+      "passage": "clean",
+      "quotes": 28,
+      "verbatim": 26,
+      "verbatim_rate": 0.929
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "high",
+      "passage": "misspelled",
+      "quotes": 5,
+      "verbatim": 4,
+      "verbatim_rate": 0.8
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "high",
+      "passage": "clean",
+      "quotes": 39,
+      "verbatim": 39,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "all",
+      "passage": "misspelled",
+      "quotes": 20,
+      "verbatim": 19,
+      "verbatim_rate": 0.95
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "all",
+      "passage": "clean",
+      "quotes": 67,
+      "verbatim": 65,
+      "verbatim_rate": 0.97
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "low",
+      "passage": "misspelled",
+      "quotes": 12,
+      "verbatim": 11,
+      "verbatim_rate": 0.917
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "low",
+      "passage": "clean",
+      "quotes": 32,
+      "verbatim": 31,
+      "verbatim_rate": 0.969
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "high",
+      "passage": "misspelled",
+      "quotes": 5,
+      "verbatim": 4,
+      "verbatim_rate": 0.8
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "high",
+      "passage": "clean",
+      "quotes": 39,
+      "verbatim": 39,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "all",
+      "passage": "misspelled",
+      "quotes": 17,
+      "verbatim": 15,
+      "verbatim_rate": 0.882
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "all",
+      "passage": "clean",
+      "quotes": 71,
+      "verbatim": 70,
+      "verbatim_rate": 0.986
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "low",
+      "passage": "misspelled",
+      "quotes": 15,
+      "verbatim": 14,
+      "verbatim_rate": 0.933
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "low",
+      "passage": "clean",
+      "quotes": 22,
+      "verbatim": 21,
+      "verbatim_rate": 0.955
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "high",
+      "passage": "misspelled",
+      "quotes": 5,
+      "verbatim": 5,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "high",
+      "passage": "clean",
+      "quotes": 39,
+      "verbatim": 39,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "all",
+      "passage": "misspelled",
+      "quotes": 20,
+      "verbatim": 19,
+      "verbatim_rate": 0.95
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "all",
+      "passage": "clean",
+      "quotes": 61,
+      "verbatim": 60,
+      "verbatim_rate": 0.984
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "low",
+      "passage": "misspelled",
+      "quotes": 17,
+      "verbatim": 17,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "low",
+      "passage": "clean",
+      "quotes": 22,
+      "verbatim": 22,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "high",
+      "passage": "misspelled",
+      "quotes": 7,
+      "verbatim": 7,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "high",
+      "passage": "clean",
+      "quotes": 33,
+      "verbatim": 33,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "all",
+      "passage": "misspelled",
+      "quotes": 24,
+      "verbatim": 24,
+      "verbatim_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "all",
+      "passage": "clean",
+      "quotes": 55,
+      "verbatim": 55,
+      "verbatim_rate": 1.0
+    }
+  ],
+  "contrasts": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "verbatim_gap": {
+        "misspelled_minus_clean": -0.02,
+        "ci95": [
+          -0.152,
+          0.066
+        ],
+        "resamples": 2000
+      }
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "verbatim_gap": {
+        "misspelled_minus_clean": -0.104,
+        "ci95": [
+          -0.272,
+          0.027
+        ],
+        "resamples": 2000
+      }
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "verbatim_gap": {
+        "misspelled_minus_clean": -0.034,
+        "ci95": [
+          -0.167,
+          0.048
+        ],
+        "resamples": 2000
+      }
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "verbatim_gap": {
+        "misspelled_minus_clean": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "resamples": 2000
+      }
+    }
+  ],
+  "kept": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "low",
+      "misspelled_words": 41,
+      "kept": 41,
+      "kept_rate": 1.0
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "high",
+      "misspelled_words": 6,
+      "kept": 5,
+      "kept_rate": 0.833
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "band": "all",
+      "misspelled_words": 47,
+      "kept": 46,
+      "kept_rate": 0.979
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "low",
+      "misspelled_words": 23,
+      "kept": 23,
+      "kept_rate": 1.0
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "high",
+      "misspelled_words": 6,
+      "kept": 5,
+      "kept_rate": 0.833
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "band": "all",
+      "misspelled_words": 29,
+      "kept": 28,
+      "kept_rate": 0.966
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "low",
+      "misspelled_words": 31,
+      "kept": 28,
+      "kept_rate": 0.903
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "high",
+      "misspelled_words": 5,
+      "kept": 5,
+      "kept_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "band": "all",
+      "misspelled_words": 36,
+      "kept": 33,
+      "kept_rate": 0.917
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "low",
+      "misspelled_words": 52,
+      "kept": 52,
+      "kept_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "high",
+      "misspelled_words": 8,
+      "kept": 8,
+      "kept_rate": 1.0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "band": "all",
+      "misspelled_words": 60,
+      "kept": 60,
+      "kept_rate": 1.0
+    }
+  ],
+  "essays": [
+    {
+      "band": "high",
+      "essays": 11,
+      "misspelled_word_rate": 0.0075
+    },
+    {
+      "band": "low",
+      "essays": 11,
+      "misspelled_word_rate": 0.0282
+    }
+  ],
+  "meta": {
+    "requests": 176,
+    "per_band": 15,
+    "seed": 2026,
+    "data_license": "CC BY-NC-SA 4.0 (Crossley et al., ELLIPSE corpus)",
+    "finished": "2026-10-15T11:23:18Z"
+  }
+}
