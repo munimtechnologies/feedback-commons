@@ -1,0 +1,1755 @@
+{
+  "cells": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English"
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish"
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English"
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish"
+    }
+  ],
+  "analysis_set": {
+    "essays": 75,
+    "low": 34,
+    "high": 41,
+    "dropped": {
+      "low": {
+        "not_reached": 0,
+        "unusable": 14
+      },
+      "high": {
+        "not_reached": 0,
+        "unusable": 7
+      }
+    }
+  },
+  "failures": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "requests": 192,
+      "request_failed": 18,
+      "unusable_reply": 0,
+      "no_quote": 0
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "requests": 192,
+      "request_failed": 1,
+      "unusable_reply": 0,
+      "no_quote": 1
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "requests": 192,
+      "request_failed": 2,
+      "unusable_reply": 0,
+      "no_quote": 1
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "requests": 192,
+      "request_failed": 1,
+      "unusable_reply": 0,
+      "no_quote": 1
+    }
+  ],
+  "primary": {
+    "bootstrap": {
+      "resamples": 2000,
+      "seed": 7
+    },
+    "exact_rate_gap": {
+      "low_minus_high": -0.007,
+      "ci95": [
+        -0.059,
+        0.039
+      ],
+      "resamples": 2000
+    },
+    "low": {
+      "essays": 34,
+      "quotes": 534,
+      "exact": 480,
+      "exact_rate": 0.899
+    },
+    "high": {
+      "essays": 41,
+      "quotes": 637,
+      "exact": 577,
+      "exact_rate": 0.906
+    },
+    "verdict": "not clear"
+  },
+  "secondary_cells": {
+    "rows": [
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "low",
+        "criterion": "all",
+        "essays": 34,
+        "requests": 68,
+        "unusable": 0,
+        "comments": 134,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 130,
+        "punctuation": 1,
+        "altered": 2,
+        "not_in_text": 1,
+        "too_short": 0,
+        "exact_rate": 0.97,
+        "punctuation_rate": 0.007,
+        "altered_rate": 0.015,
+        "not_in_text_rate": 0.007,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 55.2
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "low",
+        "criterion": "conventions",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 67,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 65,
+        "punctuation": 0,
+        "altered": 2,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.97,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.03,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 53.3
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "low",
+        "criterion": "evidence",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 67,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 65,
+        "punctuation": 1,
+        "altered": 0,
+        "not_in_text": 1,
+        "too_short": 0,
+        "exact_rate": 0.97,
+        "punctuation_rate": 0.015,
+        "altered_rate": 0.0,
+        "not_in_text_rate": 0.015,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 57.0
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "high",
+        "criterion": "all",
+        "essays": 41,
+        "requests": 82,
+        "unusable": 0,
+        "comments": 163,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 153,
+        "punctuation": 0,
+        "altered": 10,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.939,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.061,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 57.4
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "high",
+        "criterion": "conventions",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 81,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 77,
+        "punctuation": 0,
+        "altered": 4,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.951,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.049,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 54.5
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "high",
+        "criterion": "evidence",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 82,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 76,
+        "punctuation": 0,
+        "altered": 6,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.927,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.073,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 60.3
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "all",
+        "criterion": "all",
+        "essays": 75,
+        "requests": 150,
+        "unusable": 0,
+        "comments": 297,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 283,
+        "punctuation": 1,
+        "altered": 12,
+        "not_in_text": 1,
+        "too_short": 0,
+        "exact_rate": 0.953,
+        "punctuation_rate": 0.003,
+        "altered_rate": 0.04,
+        "not_in_text_rate": 0.003,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 56.4
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "all",
+        "criterion": "conventions",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 148,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 142,
+        "punctuation": 0,
+        "altered": 6,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.959,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.041,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 54.0
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "all",
+        "criterion": "evidence",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 149,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 141,
+        "punctuation": 1,
+        "altered": 6,
+        "not_in_text": 1,
+        "too_short": 0,
+        "exact_rate": 0.946,
+        "punctuation_rate": 0.007,
+        "altered_rate": 0.04,
+        "not_in_text_rate": 0.007,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 58.8
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "low",
+        "criterion": "all",
+        "essays": 34,
+        "requests": 68,
+        "unusable": 0,
+        "comments": 136,
+        "altered_with_correction": 3,
+        "corrections": 3,
+        "exact": 126,
+        "punctuation": 1,
+        "altered": 9,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.926,
+        "punctuation_rate": 0.007,
+        "altered_rate": 0.066,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 69.3
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "low",
+        "criterion": "conventions",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 68,
+        "altered_with_correction": 1,
+        "corrections": 1,
+        "exact": 63,
+        "punctuation": 1,
+        "altered": 4,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.926,
+        "punctuation_rate": 0.015,
+        "altered_rate": 0.059,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 71.1
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "low",
+        "criterion": "evidence",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 68,
+        "altered_with_correction": 2,
+        "corrections": 2,
+        "exact": 63,
+        "punctuation": 0,
+        "altered": 5,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.926,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.074,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 67.5
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "high",
+        "criterion": "all",
+        "essays": 41,
+        "requests": 82,
+        "unusable": 0,
+        "comments": 162,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 151,
+        "punctuation": 1,
+        "altered": 8,
+        "not_in_text": 2,
+        "too_short": 0,
+        "exact_rate": 0.932,
+        "punctuation_rate": 0.006,
+        "altered_rate": 0.049,
+        "not_in_text_rate": 0.012,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 65.7
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "high",
+        "criterion": "conventions",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 82,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 78,
+        "punctuation": 0,
+        "altered": 4,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.951,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.049,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 66.7
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "high",
+        "criterion": "evidence",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 80,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 73,
+        "punctuation": 1,
+        "altered": 4,
+        "not_in_text": 2,
+        "too_short": 0,
+        "exact_rate": 0.912,
+        "punctuation_rate": 0.013,
+        "altered_rate": 0.05,
+        "not_in_text_rate": 0.025,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 64.7
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "all",
+        "criterion": "all",
+        "essays": 75,
+        "requests": 150,
+        "unusable": 0,
+        "comments": 298,
+        "altered_with_correction": 3,
+        "corrections": 3,
+        "exact": 277,
+        "punctuation": 2,
+        "altered": 17,
+        "not_in_text": 2,
+        "too_short": 0,
+        "exact_rate": 0.93,
+        "punctuation_rate": 0.007,
+        "altered_rate": 0.057,
+        "not_in_text_rate": 0.007,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 67.3
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "all",
+        "criterion": "conventions",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 150,
+        "altered_with_correction": 1,
+        "corrections": 1,
+        "exact": 141,
+        "punctuation": 1,
+        "altered": 8,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.94,
+        "punctuation_rate": 0.007,
+        "altered_rate": 0.053,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 68.7
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "all",
+        "criterion": "evidence",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 148,
+        "altered_with_correction": 2,
+        "corrections": 2,
+        "exact": 136,
+        "punctuation": 1,
+        "altered": 9,
+        "not_in_text": 2,
+        "too_short": 0,
+        "exact_rate": 0.919,
+        "punctuation_rate": 0.007,
+        "altered_rate": 0.061,
+        "not_in_text_rate": 0.014,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 66.0
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "low",
+        "criterion": "all",
+        "essays": 34,
+        "requests": 68,
+        "unusable": 0,
+        "comments": 133,
+        "altered_with_correction": 9,
+        "corrections": 17,
+        "exact": 115,
+        "punctuation": 3,
+        "altered": 15,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.865,
+        "punctuation_rate": 0.023,
+        "altered_rate": 0.113,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 59.0
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "low",
+        "criterion": "conventions",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 67,
+        "altered_with_correction": 3,
+        "corrections": 4,
+        "exact": 61,
+        "punctuation": 1,
+        "altered": 5,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.91,
+        "punctuation_rate": 0.015,
+        "altered_rate": 0.075,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 58.1
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "low",
+        "criterion": "evidence",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 66,
+        "altered_with_correction": 6,
+        "corrections": 13,
+        "exact": 54,
+        "punctuation": 2,
+        "altered": 10,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.818,
+        "punctuation_rate": 0.03,
+        "altered_rate": 0.152,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 59.8
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "high",
+        "criterion": "all",
+        "essays": 41,
+        "requests": 82,
+        "unusable": 0,
+        "comments": 159,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 141,
+        "punctuation": 6,
+        "altered": 11,
+        "not_in_text": 0,
+        "too_short": 1,
+        "exact_rate": 0.887,
+        "punctuation_rate": 0.038,
+        "altered_rate": 0.069,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.006,
+        "seconds_per_request": 55.7
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "high",
+        "criterion": "conventions",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 79,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 72,
+        "punctuation": 3,
+        "altered": 4,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.911,
+        "punctuation_rate": 0.038,
+        "altered_rate": 0.051,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 55.2
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "high",
+        "criterion": "evidence",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 80,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 69,
+        "punctuation": 3,
+        "altered": 7,
+        "not_in_text": 0,
+        "too_short": 1,
+        "exact_rate": 0.863,
+        "punctuation_rate": 0.037,
+        "altered_rate": 0.087,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.013,
+        "seconds_per_request": 56.2
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "all",
+        "criterion": "all",
+        "essays": 75,
+        "requests": 150,
+        "unusable": 0,
+        "comments": 292,
+        "altered_with_correction": 9,
+        "corrections": 17,
+        "exact": 256,
+        "punctuation": 9,
+        "altered": 26,
+        "not_in_text": 0,
+        "too_short": 1,
+        "exact_rate": 0.877,
+        "punctuation_rate": 0.031,
+        "altered_rate": 0.089,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.003,
+        "seconds_per_request": 57.2
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "all",
+        "criterion": "conventions",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 146,
+        "altered_with_correction": 3,
+        "corrections": 4,
+        "exact": 133,
+        "punctuation": 4,
+        "altered": 9,
+        "not_in_text": 0,
+        "too_short": 0,
+        "exact_rate": 0.911,
+        "punctuation_rate": 0.027,
+        "altered_rate": 0.062,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 56.6
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "all",
+        "criterion": "evidence",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 146,
+        "altered_with_correction": 6,
+        "corrections": 13,
+        "exact": 123,
+        "punctuation": 5,
+        "altered": 17,
+        "not_in_text": 0,
+        "too_short": 1,
+        "exact_rate": 0.842,
+        "punctuation_rate": 0.034,
+        "altered_rate": 0.116,
+        "not_in_text_rate": 0.0,
+        "too_short_rate": 0.007,
+        "seconds_per_request": 57.8
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "low",
+        "criterion": "all",
+        "essays": 34,
+        "requests": 68,
+        "unusable": 0,
+        "comments": 131,
+        "altered_with_correction": 5,
+        "corrections": 9,
+        "exact": 109,
+        "punctuation": 1,
+        "altered": 14,
+        "not_in_text": 4,
+        "too_short": 3,
+        "exact_rate": 0.832,
+        "punctuation_rate": 0.008,
+        "altered_rate": 0.107,
+        "not_in_text_rate": 0.031,
+        "too_short_rate": 0.023,
+        "seconds_per_request": 78.6
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "low",
+        "criterion": "conventions",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 66,
+        "altered_with_correction": 0,
+        "corrections": 0,
+        "exact": 60,
+        "punctuation": 0,
+        "altered": 2,
+        "not_in_text": 2,
+        "too_short": 2,
+        "exact_rate": 0.909,
+        "punctuation_rate": 0.0,
+        "altered_rate": 0.03,
+        "not_in_text_rate": 0.03,
+        "too_short_rate": 0.03,
+        "seconds_per_request": 78.3
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "low",
+        "criterion": "evidence",
+        "essays": 34,
+        "requests": 34,
+        "unusable": 0,
+        "comments": 65,
+        "altered_with_correction": 5,
+        "corrections": 9,
+        "exact": 49,
+        "punctuation": 1,
+        "altered": 12,
+        "not_in_text": 2,
+        "too_short": 1,
+        "exact_rate": 0.754,
+        "punctuation_rate": 0.015,
+        "altered_rate": 0.185,
+        "not_in_text_rate": 0.031,
+        "too_short_rate": 0.015,
+        "seconds_per_request": 78.9
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "high",
+        "criterion": "all",
+        "essays": 41,
+        "requests": 82,
+        "unusable": 0,
+        "comments": 153,
+        "altered_with_correction": 3,
+        "corrections": 3,
+        "exact": 132,
+        "punctuation": 8,
+        "altered": 8,
+        "not_in_text": 5,
+        "too_short": 0,
+        "exact_rate": 0.863,
+        "punctuation_rate": 0.052,
+        "altered_rate": 0.052,
+        "not_in_text_rate": 0.033,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 77.0
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "high",
+        "criterion": "conventions",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 80,
+        "altered_with_correction": 1,
+        "corrections": 1,
+        "exact": 69,
+        "punctuation": 5,
+        "altered": 3,
+        "not_in_text": 3,
+        "too_short": 0,
+        "exact_rate": 0.863,
+        "punctuation_rate": 0.062,
+        "altered_rate": 0.037,
+        "not_in_text_rate": 0.037,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 74.6
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "high",
+        "criterion": "evidence",
+        "essays": 41,
+        "requests": 41,
+        "unusable": 0,
+        "comments": 73,
+        "altered_with_correction": 2,
+        "corrections": 2,
+        "exact": 63,
+        "punctuation": 3,
+        "altered": 5,
+        "not_in_text": 2,
+        "too_short": 0,
+        "exact_rate": 0.863,
+        "punctuation_rate": 0.041,
+        "altered_rate": 0.068,
+        "not_in_text_rate": 0.027,
+        "too_short_rate": 0.0,
+        "seconds_per_request": 79.4
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "all",
+        "criterion": "all",
+        "essays": 75,
+        "requests": 150,
+        "unusable": 0,
+        "comments": 284,
+        "altered_with_correction": 8,
+        "corrections": 12,
+        "exact": 241,
+        "punctuation": 9,
+        "altered": 22,
+        "not_in_text": 9,
+        "too_short": 3,
+        "exact_rate": 0.849,
+        "punctuation_rate": 0.032,
+        "altered_rate": 0.077,
+        "not_in_text_rate": 0.032,
+        "too_short_rate": 0.011,
+        "seconds_per_request": 77.7
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "all",
+        "criterion": "conventions",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 146,
+        "altered_with_correction": 1,
+        "corrections": 1,
+        "exact": 129,
+        "punctuation": 5,
+        "altered": 5,
+        "not_in_text": 5,
+        "too_short": 2,
+        "exact_rate": 0.884,
+        "punctuation_rate": 0.034,
+        "altered_rate": 0.034,
+        "not_in_text_rate": 0.034,
+        "too_short_rate": 0.014,
+        "seconds_per_request": 76.3
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "all",
+        "criterion": "evidence",
+        "essays": 75,
+        "requests": 75,
+        "unusable": 0,
+        "comments": 138,
+        "altered_with_correction": 7,
+        "corrections": 11,
+        "exact": 112,
+        "punctuation": 4,
+        "altered": 17,
+        "not_in_text": 4,
+        "too_short": 1,
+        "exact_rate": 0.812,
+        "punctuation_rate": 0.029,
+        "altered_rate": 0.123,
+        "not_in_text_rate": 0.029,
+        "too_short_rate": 0.007,
+        "seconds_per_request": 79.2
+      }
+    ],
+    "gaps": [
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "exact_rate_gap": {
+          "low_minus_high": 0.031,
+          "ci95": [
+            -0.023,
+            0.089
+          ],
+          "resamples": 2000
+        }
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "exact_rate_gap": {
+          "low_minus_high": -0.006,
+          "ci95": [
+            -0.093,
+            0.068
+          ],
+          "resamples": 2000
+        }
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "exact_rate_gap": {
+          "low_minus_high": -0.022,
+          "ci95": [
+            -0.113,
+            0.075
+          ],
+          "resamples": 2000
+        }
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "exact_rate_gap": {
+          "low_minus_high": -0.031,
+          "ci95": [
+            -0.146,
+            0.083
+          ],
+          "resamples": 2000
+        }
+      }
+    ]
+  },
+  "secondary_edit_types": {
+    "quotes": 1171,
+    "altered": 77,
+    "placed": 77,
+    "similarity_rechecked": 77,
+    "similarity_mismatches": 0,
+    "bands": [
+      {
+        "band": "low",
+        "altered": 40,
+        "placed": 40,
+        "no_edits": 0,
+        "edits": 82
+      },
+      {
+        "band": "high",
+        "altered": 37,
+        "placed": 37,
+        "no_edits": 0,
+        "edits": 44
+      },
+      {
+        "band": "all",
+        "altered": 77,
+        "placed": 77,
+        "no_edits": 0,
+        "edits": 126
+      }
+    ],
+    "types": [
+      {
+        "band": "low",
+        "type": "spelling",
+        "edits": 28,
+        "quotes": 18,
+        "words": 28,
+        "at_edge": 2
+      },
+      {
+        "band": "low",
+        "type": "apostrophe",
+        "edits": 2,
+        "quotes": 2,
+        "words": 2,
+        "at_edge": 0
+      },
+      {
+        "band": "low",
+        "type": "join",
+        "edits": 6,
+        "quotes": 6,
+        "words": 6,
+        "at_edge": 0
+      },
+      {
+        "band": "low",
+        "type": "split",
+        "edits": 1,
+        "quotes": 1,
+        "words": 2,
+        "at_edge": 0
+      },
+      {
+        "band": "low",
+        "type": "inflection",
+        "edits": 13,
+        "quotes": 10,
+        "words": 13,
+        "at_edge": 4
+      },
+      {
+        "band": "low",
+        "type": "real_word",
+        "edits": 16,
+        "quotes": 11,
+        "words": 16,
+        "at_edge": 0
+      },
+      {
+        "band": "low",
+        "type": "inserted",
+        "edits": 11,
+        "quotes": 9,
+        "words": 14,
+        "at_edge": 8,
+        "function_words": 9
+      },
+      {
+        "band": "low",
+        "type": "dropped",
+        "edits": 4,
+        "quotes": 4,
+        "words": 4,
+        "at_edge": 0,
+        "function_words": 2
+      },
+      {
+        "band": "low",
+        "type": "other",
+        "edits": 1,
+        "quotes": 1,
+        "words": 1,
+        "at_edge": 0
+      },
+      {
+        "band": "high",
+        "type": "spelling",
+        "edits": 3,
+        "quotes": 3,
+        "words": 3,
+        "at_edge": 0
+      },
+      {
+        "band": "high",
+        "type": "apostrophe",
+        "edits": 1,
+        "quotes": 1,
+        "words": 1,
+        "at_edge": 1
+      },
+      {
+        "band": "high",
+        "type": "join",
+        "edits": 2,
+        "quotes": 2,
+        "words": 2,
+        "at_edge": 0
+      },
+      {
+        "band": "high",
+        "type": "split",
+        "edits": 1,
+        "quotes": 1,
+        "words": 2,
+        "at_edge": 0
+      },
+      {
+        "band": "high",
+        "type": "inflection",
+        "edits": 4,
+        "quotes": 4,
+        "words": 4,
+        "at_edge": 3
+      },
+      {
+        "band": "high",
+        "type": "real_word",
+        "edits": 8,
+        "quotes": 4,
+        "words": 8,
+        "at_edge": 0
+      },
+      {
+        "band": "high",
+        "type": "inserted",
+        "edits": 9,
+        "quotes": 9,
+        "words": 19,
+        "at_edge": 5,
+        "function_words": 4
+      },
+      {
+        "band": "high",
+        "type": "dropped",
+        "edits": 9,
+        "quotes": 9,
+        "words": 9,
+        "at_edge": 0,
+        "function_words": 6
+      },
+      {
+        "band": "high",
+        "type": "other",
+        "edits": 7,
+        "quotes": 4,
+        "words": 14,
+        "at_edge": 3
+      },
+      {
+        "band": "all",
+        "type": "spelling",
+        "edits": 31,
+        "quotes": 21,
+        "words": 31,
+        "at_edge": 2
+      },
+      {
+        "band": "all",
+        "type": "apostrophe",
+        "edits": 3,
+        "quotes": 3,
+        "words": 3,
+        "at_edge": 1
+      },
+      {
+        "band": "all",
+        "type": "join",
+        "edits": 8,
+        "quotes": 8,
+        "words": 8,
+        "at_edge": 0
+      },
+      {
+        "band": "all",
+        "type": "split",
+        "edits": 2,
+        "quotes": 2,
+        "words": 4,
+        "at_edge": 0
+      },
+      {
+        "band": "all",
+        "type": "inflection",
+        "edits": 17,
+        "quotes": 14,
+        "words": 17,
+        "at_edge": 7
+      },
+      {
+        "band": "all",
+        "type": "real_word",
+        "edits": 24,
+        "quotes": 15,
+        "words": 24,
+        "at_edge": 0
+      },
+      {
+        "band": "all",
+        "type": "inserted",
+        "edits": 20,
+        "quotes": 18,
+        "words": 33,
+        "at_edge": 13,
+        "function_words": 13
+      },
+      {
+        "band": "all",
+        "type": "dropped",
+        "edits": 13,
+        "quotes": 13,
+        "words": 13,
+        "at_edge": 0,
+        "function_words": 8
+      },
+      {
+        "band": "all",
+        "type": "other",
+        "edits": 8,
+        "quotes": 5,
+        "words": 15,
+        "at_edge": 3
+      }
+    ],
+    "lengths": [
+      {
+        "band": "high",
+        "kind": "altered",
+        "quotes": 37,
+        "mean_words": 33.5
+      },
+      {
+        "band": "high",
+        "kind": "exact",
+        "quotes": 577,
+        "mean_words": 28.3
+      },
+      {
+        "band": "high",
+        "kind": "not_in_text",
+        "quotes": 7,
+        "mean_words": 54.7
+      },
+      {
+        "band": "high",
+        "kind": "punctuation",
+        "quotes": 15,
+        "mean_words": 36.9
+      },
+      {
+        "band": "high",
+        "kind": "too_short",
+        "quotes": 1,
+        "mean_words": 0.0
+      },
+      {
+        "band": "low",
+        "kind": "altered",
+        "quotes": 40,
+        "mean_words": 46.3
+      },
+      {
+        "band": "low",
+        "kind": "exact",
+        "quotes": 480,
+        "mean_words": 30.3
+      },
+      {
+        "band": "low",
+        "kind": "not_in_text",
+        "quotes": 5,
+        "mean_words": 94.8
+      },
+      {
+        "band": "low",
+        "kind": "punctuation",
+        "quotes": 6,
+        "mean_words": 24.7
+      },
+      {
+        "band": "low",
+        "kind": "too_short",
+        "quotes": 3,
+        "mean_words": 0.0
+      }
+    ]
+  },
+  "secondary_length": {
+    "cut_points_words": [
+      18,
+      32
+    ],
+    "rows": [
+      {
+        "band": "low",
+        "length": "short",
+        "quotes": 193,
+        "exact": 181,
+        "exact_rate": 0.938
+      },
+      {
+        "band": "low",
+        "length": "middle",
+        "quotes": 156,
+        "exact": 143,
+        "exact_rate": 0.917
+      },
+      {
+        "band": "low",
+        "length": "long",
+        "quotes": 185,
+        "exact": 156,
+        "exact_rate": 0.843
+      },
+      {
+        "band": "high",
+        "length": "short",
+        "quotes": 223,
+        "exact": 208,
+        "exact_rate": 0.933
+      },
+      {
+        "band": "high",
+        "length": "middle",
+        "quotes": 238,
+        "exact": 216,
+        "exact_rate": 0.908
+      },
+      {
+        "band": "high",
+        "length": "long",
+        "quotes": 176,
+        "exact": 153,
+        "exact_rate": 0.869
+      }
+    ]
+  },
+  "secondary_misspellings": {
+    "quotes": 1171,
+    "placed": 1155,
+    "cells": [
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "low",
+        "passage": "misspelled",
+        "quotes": 63,
+        "verbatim": 63,
+        "verbatim_rate": 1.0
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "low",
+        "passage": "clean",
+        "quotes": 70,
+        "verbatim": 68,
+        "verbatim_rate": 0.971
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "high",
+        "passage": "misspelled",
+        "quotes": 16,
+        "verbatim": 15,
+        "verbatim_rate": 0.938
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "high",
+        "passage": "clean",
+        "quotes": 147,
+        "verbatim": 138,
+        "verbatim_rate": 0.939
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "all",
+        "passage": "misspelled",
+        "quotes": 79,
+        "verbatim": 78,
+        "verbatim_rate": 0.987
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "all",
+        "passage": "clean",
+        "quotes": 217,
+        "verbatim": 206,
+        "verbatim_rate": 0.949
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "low",
+        "passage": "misspelled",
+        "quotes": 57,
+        "verbatim": 53,
+        "verbatim_rate": 0.93
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "low",
+        "passage": "clean",
+        "quotes": 79,
+        "verbatim": 74,
+        "verbatim_rate": 0.937
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "high",
+        "passage": "misspelled",
+        "quotes": 12,
+        "verbatim": 12,
+        "verbatim_rate": 1.0
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "high",
+        "passage": "clean",
+        "quotes": 148,
+        "verbatim": 140,
+        "verbatim_rate": 0.946
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "all",
+        "passage": "misspelled",
+        "quotes": 69,
+        "verbatim": 65,
+        "verbatim_rate": 0.942
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "all",
+        "passage": "clean",
+        "quotes": 227,
+        "verbatim": 214,
+        "verbatim_rate": 0.943
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "low",
+        "passage": "misspelled",
+        "quotes": 73,
+        "verbatim": 61,
+        "verbatim_rate": 0.836
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "low",
+        "passage": "clean",
+        "quotes": 60,
+        "verbatim": 57,
+        "verbatim_rate": 0.95
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "high",
+        "passage": "misspelled",
+        "quotes": 10,
+        "verbatim": 10,
+        "verbatim_rate": 1.0
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "high",
+        "passage": "clean",
+        "quotes": 148,
+        "verbatim": 137,
+        "verbatim_rate": 0.926
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "all",
+        "passage": "misspelled",
+        "quotes": 83,
+        "verbatim": 71,
+        "verbatim_rate": 0.855
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "all",
+        "passage": "clean",
+        "quotes": 208,
+        "verbatim": 194,
+        "verbatim_rate": 0.933
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "low",
+        "passage": "misspelled",
+        "quotes": 68,
+        "verbatim": 57,
+        "verbatim_rate": 0.838
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "low",
+        "passage": "clean",
+        "quotes": 56,
+        "verbatim": 53,
+        "verbatim_rate": 0.946
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "high",
+        "passage": "misspelled",
+        "quotes": 16,
+        "verbatim": 13,
+        "verbatim_rate": 0.812
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "high",
+        "passage": "clean",
+        "quotes": 132,
+        "verbatim": 127,
+        "verbatim_rate": 0.962
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "all",
+        "passage": "misspelled",
+        "quotes": 84,
+        "verbatim": 70,
+        "verbatim_rate": 0.833
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "all",
+        "passage": "clean",
+        "quotes": 188,
+        "verbatim": 180,
+        "verbatim_rate": 0.957
+      }
+    ],
+    "contrasts": [
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "verbatim_gap": {
+          "misspelled_minus_clean": 0.038,
+          "ci95": [
+            -0.011,
+            0.085
+          ],
+          "resamples": 2000
+        }
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "verbatim_gap": {
+          "misspelled_minus_clean": -0.001,
+          "ci95": [
+            -0.111,
+            0.076
+          ],
+          "resamples": 2000
+        }
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "verbatim_gap": {
+          "misspelled_minus_clean": -0.077,
+          "ci95": [
+            -0.184,
+            0.018
+          ],
+          "resamples": 2000
+        }
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "verbatim_gap": {
+          "misspelled_minus_clean": -0.124,
+          "ci95": [
+            -0.219,
+            -0.044
+          ],
+          "resamples": 2000
+        }
+      }
+    ],
+    "kept": [
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "low",
+        "misspelled_words": 110,
+        "kept": 110,
+        "kept_rate": 1.0
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "high",
+        "misspelled_words": 28,
+        "kept": 27,
+        "kept_rate": 0.964
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "English",
+        "band": "all",
+        "misspelled_words": 138,
+        "kept": 137,
+        "kept_rate": 0.993
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "low",
+        "misspelled_words": 113,
+        "kept": 110,
+        "kept_rate": 0.973
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "high",
+        "misspelled_words": 18,
+        "kept": 18,
+        "kept_rate": 1.0
+      },
+      {
+        "model": "llama3.2:3b",
+        "language": "Spanish",
+        "band": "all",
+        "misspelled_words": 131,
+        "kept": 128,
+        "kept_rate": 0.977
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "low",
+        "misspelled_words": 170,
+        "kept": 152,
+        "kept_rate": 0.894
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "high",
+        "misspelled_words": 10,
+        "kept": 10,
+        "kept_rate": 1.0
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "English",
+        "band": "all",
+        "misspelled_words": 180,
+        "kept": 162,
+        "kept_rate": 0.9
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "low",
+        "misspelled_words": 164,
+        "kept": 155,
+        "kept_rate": 0.945
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "high",
+        "misspelled_words": 19,
+        "kept": 16,
+        "kept_rate": 0.842
+      },
+      {
+        "model": "qwen2.5:3b",
+        "language": "Spanish",
+        "band": "all",
+        "misspelled_words": 183,
+        "kept": 171,
+        "kept_rate": 0.934
+      }
+    ],
+    "essays": [
+      {
+        "band": "high",
+        "essays": 41,
+        "misspelled_word_rate": 0.0048
+      },
+      {
+        "band": "low",
+        "essays": 34,
+        "misspelled_word_rate": 0.0327
+      }
+    ],
+    "kept_pooled": [
+      {
+        "band": "low",
+        "misspelled_words": 557,
+        "kept": 527,
+        "kept_rate": 0.946
+      },
+      {
+        "band": "high",
+        "misspelled_words": 75,
+        "kept": 71,
+        "kept_rate": 0.947
+      },
+      {
+        "band": "all",
+        "misspelled_words": 632,
+        "kept": 598,
+        "kept_rate": 0.946
+      }
+    ]
+  },
+  "meta": {
+    "study": "quote-fidelity-v3",
+    "requests": 768,
+    "files": 4,
+    "min_per_band": 30,
+    "data_sha256": "782344e99668a3ff508d7410c0eb6e36da70f3b28f81c96e367f1ca04924b06c",
+    "data_license": "CC BY-NC-SA 4.0 (Crossley et al., ELLIPSE corpus)",
+    "finished": "2026-10-22T11:56:46Z"
+  }
+}
