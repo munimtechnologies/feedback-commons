@@ -1,0 +1,257 @@
+{
+  "cells": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English"
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish"
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English"
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish"
+    }
+  ],
+  "analysis_set": {
+    "essays": 29,
+    "low": 12,
+    "high": 17,
+    "dropped": {
+      "low": {
+        "not_reached": 30,
+        "unusable": 18
+      },
+      "high": {
+        "not_reached": 30,
+        "unusable": 13
+      }
+    }
+  },
+  "failures": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "requests": 202,
+      "request_failed": 28,
+      "unusable_reply": 0,
+      "no_quote": 1
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "requests": 176,
+      "request_failed": 5,
+      "unusable_reply": 0,
+      "no_quote": 0
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "requests": 120,
+      "request_failed": 10,
+      "unusable_reply": 0,
+      "no_quote": 1
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "requests": 192,
+      "request_failed": 10,
+      "unusable_reply": 0,
+      "no_quote": 1
+    }
+  ],
+  "quotes": {
+    "all": 455,
+    "matched": 453,
+    "excluded": {
+      "not_in_text": 2,
+      "too_short": 0,
+      "unplaced": 0
+    }
+  },
+  "primary": {
+    "essays": 29,
+    "misspelled_quotes": 122,
+    "misspelled_exact": 110,
+    "misspelled_exact_rate": 0.902,
+    "clean_quotes": 331,
+    "clean_exact": 314,
+    "clean_exact_rate": 0.949,
+    "gap": {
+      "misspelled_minus_clean": -0.047,
+      "ci95": [
+        -0.125,
+        0.036
+      ],
+      "resamples": 10000
+    },
+    "verdict": "underpowered (fewer than 150 quotes of a passage kind): the sign is not interpreted"
+  },
+  "secondary_bands": [
+    {
+      "band": "low",
+      "essays": 12,
+      "misspelled_quotes": 81,
+      "misspelled_exact": 72,
+      "misspelled_exact_rate": 0.889,
+      "clean_quotes": 106,
+      "clean_exact": 103,
+      "clean_exact_rate": 0.972,
+      "gap": {
+        "misspelled_minus_clean": -0.083,
+        "ci95": [
+          -0.192,
+          0.014
+        ],
+        "resamples": 10000
+      }
+    },
+    {
+      "band": "high",
+      "essays": 17,
+      "misspelled_quotes": 41,
+      "misspelled_exact": 38,
+      "misspelled_exact_rate": 0.927,
+      "clean_quotes": 225,
+      "clean_exact": 211,
+      "clean_exact_rate": 0.938,
+      "gap": {
+        "misspelled_minus_clean": -0.011,
+        "ci95": [
+          -0.092,
+          0.094
+        ],
+        "resamples": 10000
+      }
+    }
+  ],
+  "secondary_cells": [
+    {
+      "model": "llama3.2:3b",
+      "language": "English",
+      "essays": 29,
+      "misspelled_quotes": 25,
+      "misspelled_exact": 21,
+      "misspelled_exact_rate": 0.84,
+      "clean_quotes": 90,
+      "clean_exact": 84,
+      "clean_exact_rate": 0.933,
+      "gap": {
+        "misspelled_minus_clean": -0.093,
+        "ci95": [
+          -0.292,
+          0.071
+        ],
+        "resamples": 10000
+      }
+    },
+    {
+      "model": "llama3.2:3b",
+      "language": "Spanish",
+      "essays": 29,
+      "misspelled_quotes": 32,
+      "misspelled_exact": 31,
+      "misspelled_exact_rate": 0.969,
+      "clean_quotes": 82,
+      "clean_exact": 77,
+      "clean_exact_rate": 0.939,
+      "gap": {
+        "misspelled_minus_clean": 0.03,
+        "ci95": [
+          -0.061,
+          0.12
+        ],
+        "resamples": 10000
+      }
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "English",
+      "essays": 29,
+      "misspelled_quotes": 32,
+      "misspelled_exact": 26,
+      "misspelled_exact_rate": 0.812,
+      "clean_quotes": 80,
+      "clean_exact": 77,
+      "clean_exact_rate": 0.963,
+      "gap": {
+        "misspelled_minus_clean": -0.15,
+        "ci95": [
+          -0.346,
+          0.036
+        ],
+        "resamples": 10000
+      }
+    },
+    {
+      "model": "qwen2.5:3b",
+      "language": "Spanish",
+      "essays": 29,
+      "misspelled_quotes": 33,
+      "misspelled_exact": 32,
+      "misspelled_exact_rate": 0.97,
+      "clean_quotes": 79,
+      "clean_exact": 76,
+      "clean_exact_rate": 0.962,
+      "gap": {
+        "misspelled_minus_clean": 0.008,
+        "ci95": [
+          -0.077,
+          0.083
+        ],
+        "resamples": 10000
+      }
+    }
+  ],
+  "secondary_descriptive": [
+    {
+      "band": "low",
+      "matched_quotes": 187,
+      "misspelled_passages": 81,
+      "misspelled_share": 0.433,
+      "misspelled_words": 205,
+      "kept": 177,
+      "not_kept": 28,
+      "kept_rate": 0.863
+    },
+    {
+      "band": "high",
+      "matched_quotes": 266,
+      "misspelled_passages": 41,
+      "misspelled_share": 0.154,
+      "misspelled_words": 51,
+      "kept": 49,
+      "not_kept": 2,
+      "kept_rate": 0.961
+    },
+    {
+      "band": "all",
+      "matched_quotes": 453,
+      "misspelled_passages": 122,
+      "misspelled_share": 0.269,
+      "misspelled_words": 256,
+      "kept": 226,
+      "not_kept": 30,
+      "kept_rate": 0.883
+    }
+  ],
+  "meta": {
+    "study": "quote-fidelity-v4",
+    "requests": 690,
+    "files": 4,
+    "floor": 150,
+    "resamples": 10000,
+    "bootstrap_seed": "v4-boot-20261022",
+    "spellchecker": "0.9.1",
+    "spellchecker_pinned": "0.9.1",
+    "data_sha256": "782344e99668a3ff508d7410c0eb6e36da70f3b28f81c96e367f1ca04924b06c",
+    "data_license": "CC BY-NC-SA 4.0 (Crossley et al., ELLIPSE corpus)",
+    "finished": "2026-10-23T17:45:43Z"
+  }
+}
